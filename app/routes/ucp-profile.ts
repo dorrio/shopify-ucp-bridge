@@ -11,6 +11,7 @@ import { json } from "@remix-run/node";
  */
 
 export async function loader({ request }: LoaderFunctionArgs) {
+    console.log(`[UCP Profile] Request received: ${request.url}`);
     const url = new URL(request.url);
     const baseUrl = `${url.protocol}//${url.host}`;
 

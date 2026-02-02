@@ -23,13 +23,13 @@ Successfully created a Shopify embedded app that implements the Universal Commer
 
 1. **Install dependencies:**
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Set up the database:**
    ```bash
-   npx prisma generate
-   npx prisma db push
+   pnpm exec prisma generate
+   pnpm exec prisma db push
    ```
 
 3. **Copy environment variables:**
@@ -42,7 +42,7 @@ Successfully created a Shopify embedded app that implements the Universal Commer
 
 5. **Start the development server:**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 ## Creating Your Shopify App
@@ -238,4 +238,26 @@ This app uses Shopify API version **2026-01** (LTS).
 
 ## License
 
-Apache License 2.0 - See the [UCP repository](https://github.com/Universal-Commerce-Protocol/ucp) for protocol documentation.
+
+## Verification
+
+To verify the UCP implementation, use the included script:
+
+```bash
+# 1. Start the app and copy the public URL
+pnpm dev
+
+# 2. Run the verification script
+npx tsx scripts/verify-endpoints.ts --url https://<your-app-url>
+```
+
+## Authentication
+
+### UCP Agent Authentication
+The app parses the `UCP-Agent` header to identify the calling agent and platform.
+
+Example Header:
+`UCP-Agent: MyAI/1.0 (Shopify/2.0; +https://shopify.com/profile)`
+
+### Shopify Authentication
+All sensitive endpoints (Creating carts, checkouts) require a valid Shopify session via the Shopify App Bridge authentication flow.

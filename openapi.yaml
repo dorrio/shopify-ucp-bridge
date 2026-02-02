@@ -39,6 +39,8 @@ tags:
 
 paths:
   /api/ucp/cart:
+    parameters:
+      - $ref: '#/components/parameters/UCPAgentHeader'
     get:
       tags: [Cart]
       summary: List all carts or get cart by ID
@@ -206,6 +208,8 @@ paths:
                 error: "Cart not found or could not be deleted"
 
   /api/ucp/checkout:
+    parameters:
+      - $ref: '#/components/parameters/UCPAgentHeader'
     get:
       tags: [Checkout]
       summary: Get checkout by ID
@@ -414,6 +418,8 @@ paths:
                 error: "Checkout not found or could not be canceled"
 
   /api/ucp/order:
+    parameters:
+      - $ref: '#/components/parameters/UCPAgentHeader'
     get:
       tags: [Order]
       summary: Get order by ID or list orders
@@ -498,6 +504,18 @@ paths:
                 error: "Order not found"
 
 components:
+  parameters:
+    UCPAgentHeader:
+      name: UCP-Agent
+      in: header
+      description: |
+        Identifies the AI agent and platform making the request.
+        Format: `AgentName/Version (PlatformName/Version; +ProfileURL)`
+      required: false
+      schema:
+        type: string
+      example: "MyAI/1.0 (Shopify/2.0; +https://shopify.com/profile)"
+
   schemas:
     UCPMoney:
       type: object

@@ -47,8 +47,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 }
 
+import { validateUCPHeaders } from "../utils/ucpMiddleware";
+
 export async function action({ request }: ActionFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers (optional for now)
+    const headerValidation = validateUCPHeaders(request, false);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const checkoutService = new CheckoutService(admin);
 
     try {
