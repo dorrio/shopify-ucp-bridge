@@ -140,8 +140,22 @@ const UCP_TOOLS: Tool[] = [
             type: "object",
             properties: {
                 checkout_id: { type: "string", description: "Checkout session ID to complete" },
+                meta: {
+                    type: "object",
+                    properties: {
+                        "idempotency-key": {
+                            type: "string",
+                            description: "UUID v4 for retry safety. Required.",
+                        },
+                        "ucp-agent": {
+                            type: "object",
+                            description: "Agent identity information",
+                        }
+                    },
+                    required: ["idempotency-key"],
+                },
             },
-            required: ["checkout_id"],
+            required: ["checkout_id", "meta"],
         },
     },
     {
@@ -151,8 +165,18 @@ const UCP_TOOLS: Tool[] = [
             type: "object",
             properties: {
                 checkout_id: { type: "string", description: "Checkout session ID to cancel" },
+                meta: {
+                    type: "object",
+                    properties: {
+                        "idempotency-key": {
+                            type: "string",
+                            description: "UUID v4 for retry safety. Required.",
+                        },
+                    },
+                    required: ["idempotency-key"],
+                },
             },
-            required: ["checkout_id"],
+            required: ["checkout_id", "meta"],
         },
     },
 
@@ -310,12 +334,12 @@ class UCPRestClient {
         return this.request("PUT", `/checkout-sessions/${encodeURIComponent(id)}`, params);
     }
 
-    async completeCheckout(id: string): Promise<unknown> {
-        return this.request("POST", `/checkout-sessions/${encodeURIComponent(id)}/complete`);
+    async completeCheckout(id: string, meta?: Record<string, any>): Promise<unknown> {
+        return this.request("POST", `/checkout-sessions/${encodeURIComponent(id)}/complete`, { meta });
     }
 
-    async cancelCheckout(id: string): Promise<unknown> {
-        return this.request("POST", `/checkout-sessions/${encodeURIComponent(id)}/cancel`);
+    async cancelCheckout(id: string, meta?: Record<string, any>): Promise<unknown> {
+        return this.request("POST", `/checkout-sessions/${encodeURIComponent(id)}/cancel`, { meta });
     }
 
     // Cart operations
@@ -392,12 +416,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 result = await client.updateCheckout(checkout_id, updateParams);
                 break;
             }
-            case "complete_checkout":
-                result = await client.completeCheckout((args as { checkout_id: string }).checkout_id);
+            case "complete_checkout": {
+                const { checkout_id, meta } = args as { checkout_id: string; meta: any };
+                if (!meta?.["idempotency-key"]) {
+                    throw new Error("Missing required argument: meta.idempotency-key");
+                }
+                result = await client.completeCheckout(checkout_id, meta);
                 break;
-            case "cancel_checkout":
-                result = await client.cancelCheckout((args as { checkout_id: string }).checkout_id);
+            }
+            case "cancel_checkout": {
+                const { checkout_id, meta } = args as { checkout_id: string; meta: any };
+                if (!meta?.["idempotency-key"]) {
+                    throw new Error("Missing required argument: meta.idempotency-key");
+                }
+                result = await client.cancelCheckout(checkout_id, meta);
                 break;
+            }
 
             // Cart tools
             case "create_cart":

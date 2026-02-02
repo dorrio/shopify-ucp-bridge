@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import { CheckoutService } from "../services/ucp";
 import type { UCPCheckoutCompleteRequest } from "../services/ucp";
 import { formatUCPCheckoutResponse } from "../utils/ucpTransformers";
+import { validateUCPMeta, type UCPMeta } from "../utils/ucpMiddleware";
 
 /**
  * UCP Checkout Complete - REST Binding
@@ -38,13 +39,34 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         if (method === "POST") {
             // POST /checkout-sessions/:id/complete - Complete checkout
-            let body: UCPCheckoutCompleteRequest = { payment: {} };
+            // UCP spec requires idempotency-key for complete_checkout
+            let body: UCPCheckoutCompleteRequest & { meta?: UCPMeta } = { payment: {} };
 
             try {
-                body = await request.json() as UCPCheckoutCompleteRequest;
+                body = await request.json() as UCPCheckoutCompleteRequest & { meta?: UCPMeta };
             } catch {
-                // Empty body is acceptable for complete
+                // Empty body is NOT acceptable for complete - idempotency-key is required
+                return json(
+                    {
+                        status: "canceled",
+                        messages: [{
+                            type: "error",
+                            code: "missing_idempotency_key",
+                            content: "Request body with meta.idempotency-key is required",
+                            severity: "recoverable",
+                        }],
+                    },
+                    { status: 400 }
+                );
             }
+
+            // Validate meta.idempotency-key per UCP MCP binding spec
+            const metaValidation = validateUCPMeta(body, true);
+            if (metaValidation instanceof Response) {
+                return metaValidation;
+            }
+
+            console.log(`[UCP Complete] Checkout ${checkoutId} with idempotency-key: ${metaValidation.idempotencyKey}`);
 
             const checkout = await checkoutService.completeCheckout(checkoutId, body);
 

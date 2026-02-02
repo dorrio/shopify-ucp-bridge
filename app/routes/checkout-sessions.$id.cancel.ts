@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import { CheckoutService } from "../services/ucp";
 import { formatUCPCheckoutResponse } from "../utils/ucpTransformers";
+import { validateUCPMeta, type UCPMeta } from "../utils/ucpMiddleware";
 
 /**
  * UCP Checkout Cancel - REST Binding
@@ -37,9 +38,44 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         if (method === "POST") {
             // POST /checkout-sessions/:id/cancel - Cancel checkout
-            const result = await checkoutService.cancelCheckout(checkoutId);
+            // UCP spec requires idempotency-key for cancel_checkout
 
-            if (!result.canceled) {
+            // Check for body content first
+            let body: { meta?: UCPMeta } = {};
+            try {
+                body = await request.json();
+            } catch {
+                // Empty body is NOT acceptable for cancel - idempotency-key is required
+                return json(
+                    {
+                        status: "canceled",
+                        messages: [{
+                            type: "error",
+                            code: "missing_idempotency_key",
+                            content: "Request body with meta.idempotency-key is required",
+                            severity: "recoverable",
+                        }],
+                    },
+                    { status: 400 }
+                );
+            }
+
+            // Validate meta.idempotency-key per UCP MCP binding spec
+            const metaValidation = validateUCPMeta(body, true);
+            if (metaValidation instanceof Response) {
+                return metaValidation;
+            }
+
+            console.log(`[UCP Cancel] Checkout ${checkoutId} with idempotency-key: ${metaValidation.idempotencyKey}`);
+
+            try {
+                const result = await checkoutService.cancelCheckout(checkoutId);
+
+                // Return full canceled checkout response per UCP spec
+                const ucpResponse = formatUCPCheckoutResponse(result);
+                return json(ucpResponse);
+            } catch (error) {
+                // If checkout not found or already deleted
                 return json(
                     {
                         status: "canceled",
@@ -53,26 +89,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
                     { status: 404 }
                 );
             }
-
-            // Return canceled checkout response
-            return json({
-                ucp: {
-                    version: "2026-01-01",
-                    capabilities: {
-                        "dev.ucp.shopping.checkout": [{
-                            version: "2026-01-01",
-                            spec: "https://ucp.dev/specification/checkout",
-                        }],
-                    },
-                },
-                id: result.id,
-                status: "canceled",
-                messages: [{
-                    type: "info",
-                    code: "checkout_canceled",
-                    content: "Checkout session has been canceled",
-                }],
-            });
         }
 
         return json(

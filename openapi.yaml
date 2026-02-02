@@ -411,6 +411,94 @@ paths:
               example:
                 error: "Checkout not found or could not be canceled"
 
+  /checkout-sessions/{id}/complete:
+    post:
+      tags: [Checkout]
+      summary: Complete a checkout session
+      description: Captures payment and converts checkout to order. Requires idempotency-key.
+      operationId: completeCheckout
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Unique key for retry safety (optional in header, can be in body)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payment:
+                  $ref: '#/components/schemas/UCPPayment'
+                meta:
+                  $ref: '#/components/schemas/UCPMeta'
+              required:
+                - payment
+      responses:
+        '200':
+          description: Checkout completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPCheckout'
+
+  /checkout-sessions/{id}/cancel:
+    post:
+      tags: [Checkout]
+      summary: Cancel a checkout session
+      description: Cancels an active checkout session. Requires idempotency-key.
+      operationId: cancelCheckout
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Unique key for retry safety (optional in header, can be in body)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                meta:
+                  $ref: '#/components/schemas/UCPMeta'
+              required:
+                - reason
+      responses:
+        '200':
+          description: Checkout canceled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  canceled:
+                    type: boolean
+                  id:
+                    type: string
+              example:
+                canceled: true
+                id: "gid://shopify/DraftOrder/123456789"
+        '404':
+          description: Checkout not found or could not be canceled
+
   /orders:
     parameters:
       - $ref: '#/components/parameters/UCPAgentHeader'

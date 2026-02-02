@@ -6,6 +6,96 @@ export interface UCPHeaders {
 }
 
 /**
+ * UCP Meta object structure
+ * https://ucp.dev/latest/specification/checkout-mcp/#request-metadata
+ */
+export interface UCPMeta {
+    "ucp-agent"?: {
+        profile?: string;
+    };
+    "idempotency-key"?: string;
+}
+
+/**
+ * Validated UCP Meta result
+ */
+export interface UCPMetaValidation {
+    valid: true;
+    meta: UCPMeta;
+    idempotencyKey?: string;
+}
+
+/**
+ * UUID v4 regex pattern
+ */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Validate UUID format
+ */
+export function isValidUUID(value: string): boolean {
+    return UUID_REGEX.test(value);
+}
+
+/**
+ * Validate UCP meta object from request body
+ * Used for complete_checkout and cancel_checkout which require idempotency-key
+ * 
+ * @param body The parsed request body
+ * @param requireIdempotencyKey If true, idempotency-key is required
+ */
+export function validateUCPMeta(
+    body: { meta?: UCPMeta } | null | undefined,
+    requireIdempotencyKey = false
+): UCPMetaValidation | Response {
+    const meta = body?.meta;
+
+    if (requireIdempotencyKey) {
+        if (!meta || !meta["idempotency-key"]) {
+            return json(
+                {
+                    status: "canceled",
+                    messages: [{
+                        type: "error",
+                        code: "missing_idempotency_key",
+                        content: "Missing required field: meta.idempotency-key. This is required for retry safety.",
+                        severity: "recoverable",
+                    }],
+                },
+                { status: 400 }
+            );
+        }
+
+        const idempotencyKey = meta["idempotency-key"];
+        if (!isValidUUID(idempotencyKey)) {
+            return json(
+                {
+                    status: "canceled",
+                    messages: [{
+                        type: "error",
+                        code: "invalid_idempotency_key",
+                        content: "Invalid idempotency-key format. Must be a valid UUID v4.",
+                        severity: "recoverable",
+                    }],
+                },
+                { status: 400 }
+            );
+        }
+
+        return {
+            valid: true,
+            meta,
+            idempotencyKey,
+        };
+    }
+
+    return {
+        valid: true,
+        meta: meta || {},
+    };
+}
+
+/**
  * Parsed UCP Agent header structure
  * Format: "AgentName/1.0 (Platform/2.0; +https://platform.com/profile)"
  */

@@ -542,9 +542,17 @@ export class CheckoutService {
   }
 
   /**
-   * Cancel checkout - deletes the Draft Order
+   * Cancel checkout - deletes the Draft Order and returns the last known state
    */
-  async cancelCheckout(checkoutId: string): Promise<{ canceled: boolean; id: string }> {
+  async cancelCheckout(checkoutId: string): Promise<UCPCheckout> {
+    // 1. Retrieve current state before deletion
+    const checkout = await this.getCheckout(checkoutId);
+
+    if (!checkout) {
+      throw new Error(`Checkout ${checkoutId} not found`);
+    }
+
+    // 2. Delete the draft order
     const response = await this.admin.graphql(`
       mutation DraftOrderDelete($input: DraftOrderDeleteInput!) {
         draftOrderDelete(input: $input) {
@@ -567,9 +575,15 @@ export class CheckoutService {
       throw new Error(data.data.draftOrderDelete.userErrors[0].message);
     }
 
+    // 3. Return the checkout object with status updated to 'canceled'
     return {
-      canceled: !!data.data?.draftOrderDelete?.deletedId,
-      id: checkoutId,
+      ...checkout,
+      status: 'canceled',
+      messages: [{
+        type: "info",
+        code: "checkout_canceled",
+        content: "Checkout session has been canceled",
+      }],
     };
   }
 }
