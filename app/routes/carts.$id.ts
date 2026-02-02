@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import { CartService } from "../services/ucp";
 import type { UCPCartUpdateRequest } from "../services/ucp";
 import { parseUCPLineItems, formatUCPCartResponse } from "../utils/ucpTransformers";
+import { validateUCPHeaders } from "../utils/ucpMiddleware";
 
 /**
  * UCP Cart Detail - REST Binding
@@ -15,6 +16,11 @@ import { parseUCPLineItems, formatUCPCartResponse } from "../utils/ucpTransforme
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const cartId = params.id;
 
     if (!cartId) {
@@ -73,6 +79,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const cartId = params.id;
 
     if (!cartId) {

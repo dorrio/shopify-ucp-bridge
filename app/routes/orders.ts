@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import { OrderService } from "../services/ucp";
 import { formatUCPOrderResponse } from "../utils/ucpTransformers";
+import { validateUCPHeaders } from "../utils/ucpMiddleware";
 
 /**
  * UCP Orders Endpoint - REST Binding
@@ -12,6 +13,11 @@ import { formatUCPOrderResponse } from "../utils/ucpTransformers";
 
 export async function loader({ request }: LoaderFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get("limit") || "20");
 
