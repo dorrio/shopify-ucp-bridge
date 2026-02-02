@@ -49,6 +49,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
                         "get_order", "list_orders",
                     ],
                 },
+                {
+                    version: "2026-01-01",
+                    transport: "a2a",
+                    schema: "https://a2a-protocol.org/latest/specification/",
+                    agentCard: `${baseUrl}/.well-known/agent-card.json`,
+                    interfaces: {
+                        jsonrpc: `${baseUrl}/a2a/jsonrpc`,
+                        rest: `${baseUrl}/a2a/rest`,
+                    },
+                    skills: ["ucp-checkout", "ucp-cart", "ucp-order"],
+                },
             ],
         },
 

@@ -11,6 +11,7 @@ Successfully created a Shopify embedded app that implements the Universal Commer
 - **Order Capability** (`dev.ucp.shopping.order`) - Order tracking with fulfillment events
 - **Fulfillment Extension** - Shipping options and tracking
 - **MCP Transport** - Direct LLM tool integration via Model Context Protocol
+- **A2A Transport** - Agent-to-agent communication via Google's A2A Protocol
 - **CORS Support** - Browser-based AI agent access
 
 ## Quick Start
@@ -156,6 +157,122 @@ pnpm run mcp
     }
   }
 }
+```
+
+## A2A Transport
+
+The app includes an A2A (Agent-to-Agent) server for direct agent-to-agent communication following Google's A2A Protocol.
+
+### Agent Discovery
+
+The Agent Card is available at:
+```
+GET /.well-known/agent-card.json
+```
+
+### Available Skills
+
+| Skill | Description |
+|-------|-------------|
+| `ucp-checkout` | Create, retrieve, update, complete, and cancel checkout sessions |
+| `ucp-cart` | Create and manage shopping carts |
+| `ucp-order` | Retrieve order details and list orders |
+
+### Running the A2A Server
+
+```bash
+# Start A2A server (HTTP transport)
+pnpm run a2a
+
+# With custom port
+A2A_PORT=6000 pnpm run a2a
+
+# With custom backend URL
+SHOPIFY_STORE_URL=https://your-store.myshopify.com pnpm run a2a
+```
+
+### Endpoints
+
+| Endpoint | Protocol | Description |
+|----------|----------|-------------|
+| `/.well-known/agent-card.json` | HTTP | Agent Card discovery |
+| `/a2a/jsonrpc` | JSON-RPC 2.0 | Primary A2A endpoint |
+| `/a2a/rest` | HTTP+JSON | REST-style A2A endpoint |
+| `/health` | HTTP | Health check |
+
+### JSON-RPC Example
+
+```bash
+# Ask the agent what it can do
+curl -X POST http://localhost:5000/a2a/jsonrpc \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {
+        "messageId": "test-123",
+        "role": "user",
+        "kind": "message",
+        "parts": [{"kind": "text", "text": "What can you do?"}]
+      }
+    },
+    "id": "1"
+  }'
+
+# Create a checkout via natural language
+curl -X POST http://localhost:5000/a2a/jsonrpc \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {
+        "messageId": "msg-456",
+        "role": "user",
+        "kind": "message",
+        "parts": [
+          {"kind": "text", "text": "Create a checkout"},
+          {"kind": "data", "data": {"line_items": [{"product_id": "123", "quantity": 2}]}}
+        ]
+      }
+    },
+    "id": "2"
+  }'
+```
+
+### Agent Card Sample
+
+```json
+{
+  "protocolVersion": "1.0",
+  "name": "UCP Shopify Bridge Agent",
+  "description": "Universal Commerce Protocol bridge for Shopify stores...",
+  "version": "1.0.0",
+  "url": "http://localhost:5000/a2a/jsonrpc",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "skills": [
+    {
+      "id": "ucp-checkout",
+      "name": "Checkout Management",
+      "description": "Create, retrieve, update, complete, and cancel checkout sessions..."
+    },
+    {
+      "id": "ucp-cart",
+      "name": "Cart Operations",
+      "description": "Create and manage shopping carts..."
+    },
+    {
+      "id": "ucp-order",
+      "name": "Order Retrieval",
+      "description": "Retrieve order details and list orders..."
+    }
+  ]
+}
+```
 
 ## UCP Protocol Mapping
 
@@ -173,31 +290,33 @@ pnpm run mcp
 shopify-ucp-bridge/
 ├── app/
 │   ├── routes/
-│   │   ├── app._index.tsx            # Dashboard
-│   │   ├── app.settings.tsx          # Settings page
-│   │   ├── carts.ts                  # Cart API
-│   │   ├── carts.$id.ts              # Cart by ID
-│   │   ├── checkout-sessions.ts      # Checkout API
-│   │   ├── checkout-sessions.$id.ts  # Checkout by ID
-│   │   ├── orders.ts                 # Order API
-│   │   ├── orders.$id.ts             # Order by ID
-│   │   ├── ucp-profile.ts            # Profile Discovery (with CORS)
-│   │   └── [.well-known].ucp.ts      # /.well-known/ucp redirect
+│   │   ├── app._index.tsx                      # Dashboard
+│   │   ├── app.settings.tsx                    # Settings page
+│   │   ├── carts.ts                            # Cart API
+│   │   ├── carts.$id.ts                        # Cart by ID
+│   │   ├── checkout-sessions.ts                # Checkout API
+│   │   ├── checkout-sessions.$id.ts            # Checkout by ID
+│   │   ├── orders.ts                           # Order API
+│   │   ├── orders.$id.ts                       # Order by ID
+│   │   ├── ucp-profile.ts                      # Profile Discovery (with CORS)
+│   │   ├── [.well-known].ucp.ts                # /.well-known/ucp redirect
+│   │   └── [.well-known].agent-card[.json].ts  # A2A Agent Card (/.well-known/agent-card.json)
 │   ├── services/ucp/
-│   │   ├── cartService.ts            # Cart operations
-│   │   ├── checkoutService.ts        # Checkout operations
-│   │   ├── orderService.ts           # Order operations
-│   │   └── types/index.ts            # UCP type definitions
+│   │   ├── cartService.ts                      # Cart operations
+│   │   ├── checkoutService.ts                  # Checkout operations
+│   │   ├── orderService.ts                     # Order operations
+│   │   └── types/index.ts                      # UCP type definitions
 │   ├── utils/
-│   │   ├── cors.ts                   # CORS middleware
-│   │   └── ucpMiddleware.ts          # UCP-Agent header validation
-│   ├── shopify.server.ts             # Shopify configuration
-│   └── db.server.ts                  # Database client
+│   │   ├── cors.ts                             # CORS middleware
+│   │   └── ucpMiddleware.ts                    # UCP-Agent header validation
+│   ├── shopify.server.ts                       # Shopify configuration
+│   └── db.server.ts                            # Database client
 ├── scripts/
-│   └── mcp-server.ts                 # MCP server (stdio transport)
+│   ├── mcp-server.ts                           # MCP server (stdio transport)
+│   └── a2a-server.ts                           # A2A server (HTTP transport)
 ├── prisma/
-│   └── schema.prisma                 # Database schema
-├── shopify.app.toml                  # Shopify CLI config
+│   └── schema.prisma                           # Database schema
+├── shopify.app.toml                            # Shopify CLI config
 └── package.json
 ```
 
