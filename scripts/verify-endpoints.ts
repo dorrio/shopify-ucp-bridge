@@ -1,8 +1,15 @@
 import fetch from "node-fetch";
 
 async function verifyEndpoints() {
-    const urlArg = process.argv.find(arg => arg.startsWith("--url="));
-    const baseUrl = urlArg ? urlArg.split("=")[1] : "http://localhost:3000"; // Default, though likely needs the shopify tunnel
+    const urlIndex = process.argv.indexOf("--url");
+    let baseUrl = urlIndex !== -1 ? process.argv[urlIndex + 1] : "http://localhost:3000";
+
+    if (!baseUrl && process.argv.find(arg => arg.startsWith("--url="))) {
+        baseUrl = process.argv.find(arg => arg.startsWith("--url="))!.split("=")[1];
+    }
+
+    // Remove trailing slash if present
+    baseUrl = baseUrl.replace(/\/$/, "");
 
     console.log(`Verifying endpoints at ${baseUrl}...\n`);
 
@@ -49,7 +56,7 @@ async function verifyEndpoints() {
 
         if (checkoutRes.status === 200 || checkoutRes.status === 201) {
             console.log("⚠️  Unexpected success (Endpoint should be protected)");
-        } else if (checkoutRes.status === 401 || checkoutRes.status === 302 || checkoutRes.status === 403) {
+        } else if (checkoutRes.status === 401 || checkoutRes.status === 302 || checkoutRes.status === 403 || checkoutRes.status === 410) {
             console.log("✅ Expected behavior (Endpoint is protected)");
         } else {
             console.log("❓ Other status:", checkoutRes.status);

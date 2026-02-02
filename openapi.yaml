@@ -38,21 +38,26 @@ tags:
     description: Order tracking (dev.ucp.shopping.order)
 
 paths:
-  /api/ucp/cart:
+  /ucp-profile:
+    get:
+      tags: [Profile]
+      summary: Discover UCP capabilities
+      description: Returns business capabilities and service definitions for AI agents.
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPMetadata'
+
+  /carts:
     parameters:
       - $ref: '#/components/parameters/UCPAgentHeader'
     get:
       tags: [Cart]
-      summary: List all carts or get cart by ID
-      description: Returns a list of all active carts (Draft Orders) or a specific cart if ID is provided.
+      summary: List all carts
       parameters:
-        - name: id
-          in: query
-          description: Cart ID (Shopify Draft Order GID)
-          required: false
-          schema:
-            type: string
-          example: gid://shopify/DraftOrder/123456789
         - name: limit
           in: query
           description: Maximum number of carts to return (default 20)
@@ -62,82 +67,21 @@ paths:
             default: 20
       responses:
         '200':
-          description: Cart(s) retrieved successfully
+          description: Carts retrieved successfully
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/UCPCart'
-                  - $ref: '#/components/schemas/CartListResponse'
-              examples:
-                single_cart:
-                  summary: Single cart response
-                  value:
-                    ucp:
-                      version: "2026-01-01"
-                      capabilities:
-                        dev.ucp.shopping.cart:
-                          - version: "2026-01-01"
-                            spec: "https://ucp.dev/specification/cart"
-                    id: "gid://shopify/DraftOrder/123456789"
-                    line_items:
-                      - product_id: "gid://shopify/Product/111"
-                        variant_id: "gid://shopify/ProductVariant/222"
-                        quantity: 2
-                        title: "Classic T-Shirt - Blue / M"
-                        sku: "TSH-BLU-M"
-                        price:
-                          amount: "29.99"
-                          currency_code: "EUR"
-                    currency: "EUR"
-                    totals:
-                      - type: subtotal
-                        amount: { amount: "59.98", currency_code: "EUR" }
-                      - type: tax
-                        amount: { amount: "12.60", currency_code: "EUR" }
-                      - type: total
-                        amount: { amount: "72.58", currency_code: "EUR" }
-                cart_list:
-                  summary: Cart list response
-                  value:
-                    carts: []
-                    total: 0
-        '404':
-          description: Cart not found
-          content:
-            application/json:
-              example:
-                error: "Cart not found"
+                $ref: '#/components/schemas/CartListResponse'
 
     post:
       tags: [Cart]
       summary: Create a new cart
-      description: Creates a new cart (Draft Order in Shopify) with the specified line items.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UCPCartCreateRequest'
-            examples:
-              basic_cart:
-                summary: Create cart with one item
-                value:
-                  line_items:
-                    - variant_id: "gid://shopify/ProductVariant/44567891234"
-                      quantity: 1
-              cart_with_buyer:
-                summary: Create cart with buyer info
-                value:
-                  line_items:
-                    - variant_id: "gid://shopify/ProductVariant/44567891234"
-                      quantity: 2
-                    - variant_id: "gid://shopify/ProductVariant/44567891235"
-                      quantity: 1
-                  buyer:
-                    email: "customer@example.com"
-                    first_name: "Juan"
-                    last_name: "García"
       responses:
         '201':
           description: Cart created successfully
@@ -147,26 +91,38 @@ paths:
                 $ref: '#/components/schemas/UCPCart'
         '400':
           description: Invalid request
+
+  /carts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UCPAgentHeader'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: gid://shopify/DraftOrder/123456789
+    get:
+      tags: [Cart]
+      summary: Get cart by ID
+      responses:
+        '200':
+          description: Cart retrieved successfully
           content:
             application/json:
-              example:
-                error: "line_items is required and must not be empty"
+              schema:
+                $ref: '#/components/schemas/UCPCart'
+        '404':
+          description: Cart not found
 
-    patch:
+    put:
       tags: [Cart]
-      summary: Update an existing cart
-      description: Updates line items or buyer info in an existing cart.
+      summary: Update cart
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UCPCartUpdateRequest'
-            example:
-              id: "gid://shopify/DraftOrder/123456789"
-              line_items:
-                - variant_id: "gid://shopify/ProductVariant/44567891234"
-                  quantity: 3
       responses:
         '200':
           description: Cart updated successfully
@@ -174,38 +130,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UCPCart'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              example:
-                error: "id is required"
 
     delete:
       tags: [Cart]
-      summary: Delete a cart
-      description: Deletes a cart (Draft Order) permanently.
-      parameters:
-        - name: id
-          in: query
-          required: true
-          schema:
-            type: string
-          example: gid://shopify/DraftOrder/123456789
+      summary: Delete cart
       responses:
         '200':
           description: Cart deleted successfully
-          content:
-            application/json:
-              example:
-                deleted: true
-                id: "gid://shopify/DraftOrder/123456789"
         '404':
           description: Cart not found
-          content:
-            application/json:
-              example:
-                error: "Cart not found or could not be deleted"
 
   /api/ucp/checkout:
     parameters:

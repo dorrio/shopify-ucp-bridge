@@ -1,0 +1,5 @@
+type = "backend"
+roles = ["frontend", "backend"]
+commands.dev = "npm exec remix vite:dev"
+# commands.build = "npm run build"
+port = 3000

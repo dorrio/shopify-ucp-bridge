@@ -28,3 +28,6 @@ prisma/dev.db
 Thumbs.db
 .pnpm-store
 .pnpm-store/*
+
+# Test scripts
+test-transformers.ts

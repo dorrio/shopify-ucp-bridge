@@ -126,11 +126,14 @@ GET /orders/:id      Get order by ID
 shopify-app/
 ├── app/
 │   ├── routes/
-│   │   ├── app._index.tsx      # Dashboard
+│   │   ├── app._index.tsx       # Dashboard
 │   │   ├── app.settings.tsx     # Settings page
-│   │   ├── api.ucp.cart.ts      # Cart API
-│   │   ├── api.ucp.checkout.ts  # Checkout API
-│   │   └── api.ucp.order.ts     # Order API
+│   │   ├── carts.ts             # Cart API (Active)
+│   │   ├── checkout-sessions.ts # Checkout API (Active)
+│   │   ├── orders.ts            # Order API (Active)
+│   │   ├── ucp-profile.ts       # Profile Discovery
+│   │   ├── api.ucp.checkout.ts  # Legacy Checkout API (Redirect)
+│   │   └── api.ucp.order.ts     # Legacy Order API (Redirect)
 │   ├── services/ucp/
 │   │   ├── cartService.ts       # Cart operations
 │   │   ├── checkoutService.ts   # Checkout operations
