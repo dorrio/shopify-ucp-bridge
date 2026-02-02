@@ -176,17 +176,17 @@ paths:
                     quantity: 1
                     title: "Premium Widget"
                     price:
-                      amount: "149.00"
+                      amount: 14900
                       currency_code: "EUR"
                 totals:
                   - type: subtotal
-                    amount: { amount: "149.00", currency_code: "EUR" }
+                    amount: { amount: 14900, currency_code: "EUR" }
                   - type: shipping
-                    amount: { amount: "5.99", currency_code: "EUR" }
+                    amount: { amount: 599, currency_code: "EUR" }
                   - type: tax
-                    amount: { amount: "32.55", currency_code: "EUR" }
+                    amount: { amount: 3255, currency_code: "EUR" }
                   - type: total
-                    amount: { amount: "187.54", currency_code: "EUR" }
+                    amount: { amount: 18754, currency_code: "EUR" }
                 links:
                   - rel: "self"
                     href: "/api/ucp/checkout/gid://shopify/DraftOrder/123456789"
@@ -417,13 +417,13 @@ paths:
                           created_at: "2026-02-05T10:30:00Z"
                     totals:
                       - type: subtotal
-                        amount: { amount: "59.98", currency_code: "EUR" }
+                        amount: { amount: 5998, currency_code: "EUR" }
                       - type: shipping
-                        amount: { amount: "5.99", currency_code: "EUR" }
+                        amount: { amount: 599, currency_code: "EUR" }
                       - type: tax
-                        amount: { amount: "13.85", currency_code: "EUR" }
+                        amount: { amount: 1385, currency_code: "EUR" }
                       - type: total
-                        amount: { amount: "79.82", currency_code: "EUR" }
+                        amount: { amount: 7982, currency_code: "EUR" }
                 order_list:
                   summary: Order list
                   value:
@@ -455,8 +455,8 @@ components:
       required: [amount, currency_code]
       properties:
         amount:
-          type: string
-          example: "29.99"
+          type: integer
+          example: 2999
         currency_code:
           type: string
           example: "EUR"

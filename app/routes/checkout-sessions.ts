@@ -15,6 +15,11 @@ import { parseUCPLineItems, formatUCPCheckoutResponse } from "../utils/ucpTransf
 
 export async function loader({ request }: LoaderFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get("limit") || "20");
 
@@ -52,8 +57,8 @@ import { validateUCPHeaders } from "../utils/ucpMiddleware";
 export async function action({ request }: ActionFunctionArgs) {
     const { admin } = await authenticate.admin(request);
 
-    // Validate UCP Headers (optional for now)
-    const headerValidation = validateUCPHeaders(request, false);
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
     if (headerValidation instanceof Response) return headerValidation;
 
     const checkoutService = new CheckoutService(admin);

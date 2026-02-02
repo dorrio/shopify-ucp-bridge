@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import { CheckoutService } from "../services/ucp";
 import type { UCPCheckoutUpdateRequest } from "../services/ucp";
 import { parseUCPLineItems, formatUCPCheckoutResponse } from "../utils/ucpTransformers";
+import { validateUCPHeaders } from "../utils/ucpMiddleware";
 
 /**
  * UCP Checkout Session Detail - REST Binding
@@ -15,6 +16,11 @@ import { parseUCPLineItems, formatUCPCheckoutResponse } from "../utils/ucpTransf
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const checkoutId = params.id;
 
     if (!checkoutId) {
@@ -75,6 +81,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const checkoutId = params.id;
 
     if (!checkoutId) {

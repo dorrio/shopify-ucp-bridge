@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import { CartService } from "../services/ucp";
 import type { UCPCartCreateRequest, UCPCartUpdateRequest } from "../services/ucp";
 import { parseUCPLineItems, formatUCPCartResponse } from "../utils/ucpTransformers";
+import { validateUCPHeaders } from "../utils/ucpMiddleware";
 
 /**
  * UCP Cart Endpoint - REST Binding
@@ -14,6 +15,11 @@ import { parseUCPLineItems, formatUCPCartResponse } from "../utils/ucpTransforme
 
 export async function loader({ request }: LoaderFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get("limit") || "20");
 
@@ -49,6 +55,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
     const { admin } = await authenticate.admin(request);
+
+    // Validate UCP Headers
+    const headerValidation = validateUCPHeaders(request, true);
+    if (headerValidation instanceof Response) return headerValidation;
+
     const cartService = new CartService(admin);
 
     try {
