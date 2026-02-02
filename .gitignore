@@ -1,0 +1,30 @@
+node_modules/
+.cache/
+build/
+public/build/
+.env
+.dev.vars
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Database
+*.sqlite
+*.sqlite-journal
+prisma/dev.db
+
+# Shopify
+.shopify/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+.pnpm-store
+.pnpm-store/*

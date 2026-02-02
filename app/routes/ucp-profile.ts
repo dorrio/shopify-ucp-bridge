@@ -1,0 +1,78 @@
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+
+/**
+ * UCP Profile Discovery Endpoint
+ * https://ucp.dev/latest/specification/overview/#services
+ * 
+ * GET /ucp-profile - Returns business capabilities for UCP agents
+ * 
+ * This allows AI agents to discover what UCP capabilities this business supports.
+ */
+
+export async function loader({ request }: LoaderFunctionArgs) {
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
+
+    return json({
+        version: "2026-01-01",
+        name: "Shopify UCP Bridge",
+        description: "Universal Commerce Protocol bridge for Shopify stores",
+
+        // Services advertise transport bindings
+        services: {
+            "dev.ucp.shopping": [{
+                version: "2026-01-01",
+                transport: "rest",
+                schema: "https://ucp.dev/services/shopping/rest.openapi.json",
+                endpoint: baseUrl,
+            }],
+        },
+
+        // Capabilities list specific features
+        capabilities: {
+            "dev.ucp.shopping.cart": [{
+                version: "2026-01-01",
+                spec: "https://ucp.dev/specification/cart",
+                description: "Cart management for collecting line items",
+            }],
+            "dev.ucp.shopping.checkout": [{
+                version: "2026-01-01",
+                spec: "https://ucp.dev/specification/checkout",
+                description: "Checkout session management with buyer info and payment",
+                endpoints: {
+                    create: "POST /checkout-sessions",
+                    get: "GET /checkout-sessions/{id}",
+                    update: "PUT /checkout-sessions/{id}",
+                    complete: "POST /checkout-sessions/{id}/complete",
+                    cancel: "POST /checkout-sessions/{id}/cancel",
+                },
+            }],
+            "dev.ucp.shopping.order": [{
+                version: "2026-01-01",
+                spec: "https://ucp.dev/specification/order",
+                description: "Order retrieval and fulfillment tracking",
+            }],
+        },
+
+        // Supported features
+        features: {
+            currencies: ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"],
+            payment_methods: ["invoice"], // Using Shopify's invoice flow
+            fulfillment_types: ["shipping", "pickup"],
+        },
+
+        // Contact info
+        links: [
+            {
+                rel: "documentation",
+                href: "https://github.com/Universal-Commerce-Protocol/ucp",
+                title: "UCP Documentation",
+            },
+        ],
+    }, {
+        headers: {
+            "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+        },
+    });
+}

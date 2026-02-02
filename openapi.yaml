@@ -1,0 +1,955 @@
+openapi: 3.0.3
+info:
+  title: UCP Shopify Bridge API
+  description: |
+    Universal Commerce Protocol (UCP) API endpoints for Shopify integration.
+    This API allows AI agents (LLMs) to interact with Shopify stores using standardized UCP schemas.
+    
+    ## Authentication
+    All endpoints require Shopify session authentication. When testing locally, use the session cookie from your embedded app.
+    
+    ## Base URL
+    - Development: `http://localhost:3000`
+    - Production: Your Shopify app URL
+  version: 2026-01-01
+  contact:
+    name: UCP Protocol
+    url: https://ucp.dev
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://{app-url}
+    description: Production Shopify App
+    variables:
+      app-url:
+        default: your-app.fly.dev
+        description: Your deployed app URL
+
+tags:
+  - name: Cart
+    description: Cart operations (dev.ucp.shopping.cart)
+  - name: Checkout
+    description: Checkout lifecycle (dev.ucp.shopping.checkout)
+  - name: Order
+    description: Order tracking (dev.ucp.shopping.order)
+
+paths:
+  /api/ucp/cart:
+    get:
+      tags: [Cart]
+      summary: List all carts or get cart by ID
+      description: Returns a list of all active carts (Draft Orders) or a specific cart if ID is provided.
+      parameters:
+        - name: id
+          in: query
+          description: Cart ID (Shopify Draft Order GID)
+          required: false
+          schema:
+            type: string
+          example: gid://shopify/DraftOrder/123456789
+        - name: limit
+          in: query
+          description: Maximum number of carts to return (default 20)
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Cart(s) retrieved successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/UCPCart'
+                  - $ref: '#/components/schemas/CartListResponse'
+              examples:
+                single_cart:
+                  summary: Single cart response
+                  value:
+                    ucp:
+                      version: "2026-01-01"
+                      capabilities:
+                        dev.ucp.shopping.cart:
+                          - version: "2026-01-01"
+                            spec: "https://ucp.dev/specification/cart"
+                    id: "gid://shopify/DraftOrder/123456789"
+                    line_items:
+                      - product_id: "gid://shopify/Product/111"
+                        variant_id: "gid://shopify/ProductVariant/222"
+                        quantity: 2
+                        title: "Classic T-Shirt - Blue / M"
+                        sku: "TSH-BLU-M"
+                        price:
+                          amount: "29.99"
+                          currency_code: "EUR"
+                    currency: "EUR"
+                    totals:
+                      - type: subtotal
+                        amount: { amount: "59.98", currency_code: "EUR" }
+                      - type: tax
+                        amount: { amount: "12.60", currency_code: "EUR" }
+                      - type: total
+                        amount: { amount: "72.58", currency_code: "EUR" }
+                cart_list:
+                  summary: Cart list response
+                  value:
+                    carts: []
+                    total: 0
+        '404':
+          description: Cart not found
+          content:
+            application/json:
+              example:
+                error: "Cart not found"
+
+    post:
+      tags: [Cart]
+      summary: Create a new cart
+      description: Creates a new cart (Draft Order in Shopify) with the specified line items.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UCPCartCreateRequest'
+            examples:
+              basic_cart:
+                summary: Create cart with one item
+                value:
+                  line_items:
+                    - variant_id: "gid://shopify/ProductVariant/44567891234"
+                      quantity: 1
+              cart_with_buyer:
+                summary: Create cart with buyer info
+                value:
+                  line_items:
+                    - variant_id: "gid://shopify/ProductVariant/44567891234"
+                      quantity: 2
+                    - variant_id: "gid://shopify/ProductVariant/44567891235"
+                      quantity: 1
+                  buyer:
+                    email: "customer@example.com"
+                    first_name: "Juan"
+                    last_name: "García"
+      responses:
+        '201':
+          description: Cart created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPCart'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              example:
+                error: "line_items is required and must not be empty"
+
+    patch:
+      tags: [Cart]
+      summary: Update an existing cart
+      description: Updates line items or buyer info in an existing cart.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UCPCartUpdateRequest'
+            example:
+              id: "gid://shopify/DraftOrder/123456789"
+              line_items:
+                - variant_id: "gid://shopify/ProductVariant/44567891234"
+                  quantity: 3
+      responses:
+        '200':
+          description: Cart updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPCart'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              example:
+                error: "id is required"
+
+    delete:
+      tags: [Cart]
+      summary: Delete a cart
+      description: Deletes a cart (Draft Order) permanently.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          example: gid://shopify/DraftOrder/123456789
+      responses:
+        '200':
+          description: Cart deleted successfully
+          content:
+            application/json:
+              example:
+                deleted: true
+                id: "gid://shopify/DraftOrder/123456789"
+        '404':
+          description: Cart not found
+          content:
+            application/json:
+              example:
+                error: "Cart not found or could not be deleted"
+
+  /api/ucp/checkout:
+    get:
+      tags: [Checkout]
+      summary: Get checkout by ID
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          example: gid://shopify/DraftOrder/123456789
+      responses:
+        '200':
+          description: Checkout retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPCheckout'
+              example:
+                ucp:
+                  version: "2026-01-01"
+                  capabilities:
+                    dev.ucp.shopping.checkout:
+                      - version: "2026-01-01"
+                        spec: "https://ucp.dev/specification/checkout"
+                id: "gid://shopify/DraftOrder/123456789"
+                status: "ready_for_complete"
+                currency: "EUR"
+                line_items:
+                  - product_id: "gid://shopify/Product/111"
+                    variant_id: "gid://shopify/ProductVariant/222"
+                    quantity: 1
+                    title: "Premium Widget"
+                    price:
+                      amount: "149.00"
+                      currency_code: "EUR"
+                totals:
+                  - type: subtotal
+                    amount: { amount: "149.00", currency_code: "EUR" }
+                  - type: shipping
+                    amount: { amount: "5.99", currency_code: "EUR" }
+                  - type: tax
+                    amount: { amount: "32.55", currency_code: "EUR" }
+                  - type: total
+                    amount: { amount: "187.54", currency_code: "EUR" }
+                links:
+                  - rel: "self"
+                    href: "/api/ucp/checkout/gid://shopify/DraftOrder/123456789"
+                  - rel: "checkout"
+                    href: "https://shop.myshopify.com/checkout/invoice/..."
+                    title: "Complete checkout"
+                buyer:
+                  email: "customer@example.com"
+                  first_name: "María"
+                  last_name: "López"
+        '404':
+          description: Checkout not found
+
+    post:
+      tags: [Checkout]
+      summary: Create checkout or perform action
+      description: |
+        Creates a new checkout session, completes a checkout, or sends an invoice.
+        Use `action` query parameter for special operations.
+      parameters:
+        - name: action
+          in: query
+          description: Action to perform (complete, invoice)
+          required: false
+          schema:
+            type: string
+            enum: [complete, invoice]
+        - name: id
+          in: query
+          description: Checkout ID (required for actions)
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/UCPCheckoutCreateRequest'
+                - $ref: '#/components/schemas/UCPCheckoutCompleteRequest'
+            examples:
+              create_checkout:
+                summary: Create new checkout
+                value:
+                  line_items:
+                    - variant_id: "gid://shopify/ProductVariant/44567891234"
+                      quantity: 1
+                  buyer:
+                    email: "buyer@example.com"
+                    first_name: "Ana"
+                    last_name: "Martínez"
+                  fulfillment:
+                    destination:
+                      address1: "Calle Gran Vía 123"
+                      city: "Madrid"
+                      province: "Madrid"
+                      country: "Spain"
+                      country_code: "ES"
+                      zip: "28013"
+                      first_name: "Ana"
+                      last_name: "Martínez"
+                      phone: "+34612345678"
+              create_from_cart:
+                summary: Create checkout from existing cart
+                value:
+                  cart_id: "gid://shopify/DraftOrder/123456789"
+                  buyer:
+                    email: "buyer@example.com"
+              complete_checkout:
+                summary: Complete checkout (action=complete)
+                value:
+                  payment:
+                    method: "credit_card"
+                    token: "tok_visa_4242"
+      responses:
+        '201':
+          description: Checkout created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPCheckout'
+        '200':
+          description: Action completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPCheckout'
+              examples:
+                completed:
+                  summary: Completed checkout
+                  value:
+                    id: "gid://shopify/DraftOrder/123456789"
+                    status: "completed"
+                    order:
+                      id: "gid://shopify/Order/987654321"
+                      number: "#1001"
+                      permalink_url: "https://shop.myshopify.com/orders/123"
+
+    patch:
+      tags: [Checkout]
+      summary: Update checkout
+      description: Updates line items, buyer info, or shipping address in an existing checkout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UCPCheckoutUpdateRequest'
+            example:
+              id: "gid://shopify/DraftOrder/123456789"
+              line_items:
+                - variant_id: "gid://shopify/ProductVariant/44567891234"
+                  quantity: 2
+              fulfillment:
+                destination:
+                  address1: "Avenida Diagonal 456"
+                  city: "Barcelona"
+                  province: "Barcelona"
+                  country: "Spain"
+                  country_code: "ES"
+                  zip: "08006"
+      responses:
+        '200':
+          description: Checkout updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UCPCheckout'
+
+    delete:
+      tags: [Checkout]
+      summary: Cancel checkout
+      description: Cancels and deletes a checkout session (Draft Order).
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          example: gid://shopify/DraftOrder/123456789
+      responses:
+        '200':
+          description: Checkout canceled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  canceled:
+                    type: boolean
+                  id:
+                    type: string
+              example:
+                canceled: true
+                id: "gid://shopify/DraftOrder/123456789"
+        '404':
+          description: Checkout not found or could not be canceled
+          content:
+            application/json:
+              example:
+                error: "Checkout not found or could not be canceled"
+
+  /api/ucp/order:
+    get:
+      tags: [Order]
+      summary: Get order by ID or list orders
+      description: Returns order details including fulfillment status and tracking.
+      parameters:
+        - name: id
+          in: query
+          description: Order ID (Shopify Order GID)
+          required: false
+          schema:
+            type: string
+          example: gid://shopify/Order/987654321
+        - name: limit
+          in: query
+          description: Maximum number of orders to return
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Order(s) retrieved successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/UCPOrder'
+                  - $ref: '#/components/schemas/OrderListResponse'
+              examples:
+                single_order:
+                  summary: Single order with fulfillment
+                  value:
+                    ucp:
+                      version: "2026-01-01"
+                      capabilities:
+                        dev.ucp.shopping.order:
+                          - version: "2026-01-01"
+                    id: "gid://shopify/Order/987654321"
+                    checkout_id: "gid://shopify/DraftOrder/123456789"
+                    permalink_url: "https://shop.myshopify.com/orders/987654321"
+                    line_items:
+                      - id: "gid://shopify/LineItem/555"
+                        product_id: "gid://shopify/Product/111"
+                        variant_id: "gid://shopify/ProductVariant/222"
+                        quantity: 2
+                        fulfilled_quantity: 2
+                        fulfillable_quantity: 0
+                        title: "Classic T-Shirt - Blue / M"
+                    fulfillment:
+                      expectations:
+                        - id: "exp_1"
+                          line_item_ids: ["gid://shopify/LineItem/555"]
+                          method: "shipping"
+                          estimated_delivery: "2026-02-10"
+                      events:
+                        - id: "gid://shopify/Fulfillment/777"
+                          line_item_ids: ["gid://shopify/LineItem/555"]
+                          status: "in_transit"
+                          tracking_number: "1Z999AA10123456784"
+                          tracking_url: "https://www.ups.com/track?tracknum=1Z999AA10123456784"
+                          carrier: "UPS"
+                          created_at: "2026-02-05T10:30:00Z"
+                    totals:
+                      - type: subtotal
+                        amount: { amount: "59.98", currency_code: "EUR" }
+                      - type: shipping
+                        amount: { amount: "5.99", currency_code: "EUR" }
+                      - type: tax
+                        amount: { amount: "13.85", currency_code: "EUR" }
+                      - type: total
+                        amount: { amount: "79.82", currency_code: "EUR" }
+                order_list:
+                  summary: Order list
+                  value:
+                    orders: []
+                    total: 0
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              example:
+                error: "Order not found"
+
+components:
+  schemas:
+    UCPMoney:
+      type: object
+      required: [amount, currency_code]
+      properties:
+        amount:
+          type: string
+          example: "29.99"
+        currency_code:
+          type: string
+          example: "EUR"
+
+    UCPTotal:
+      type: object
+      required: [type, amount]
+      properties:
+        type:
+          type: string
+          enum: [subtotal, tax, shipping, discount, total, due]
+        amount:
+          $ref: '#/components/schemas/UCPMoney'
+        label:
+          type: string
+
+    UCPLineItem:
+      type: object
+      required: [quantity]
+      properties:
+        product_id:
+          type: string
+        variant_id:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          $ref: '#/components/schemas/UCPMoney'
+        title:
+          type: string
+        image_url:
+          type: string
+        sku:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+
+    UCPAddress:
+      type: object
+      properties:
+        address1:
+          type: string
+        address2:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+        province_code:
+          type: string
+        country:
+          type: string
+        country_code:
+          type: string
+        zip:
+          type: string
+        phone:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        company:
+          type: string
+
+    UCPBuyer:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPAddress'
+
+    UCPMetadata:
+      type: object
+      required: [version]
+      properties:
+        version:
+          type: string
+          example: "2026-01-01"
+        capabilities:
+          type: object
+
+    UCPCart:
+      type: object
+      required: [ucp, id, line_items, currency, totals]
+      properties:
+        ucp:
+          $ref: '#/components/schemas/UCPMetadata'
+        id:
+          type: string
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLineItem'
+        currency:
+          type: string
+        totals:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPTotal'
+        buyer:
+          $ref: '#/components/schemas/UCPBuyer'
+        continue_url:
+          type: string
+
+    UCPCartCreateRequest:
+      type: object
+      required: [line_items]
+      properties:
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLineItem'
+          minItems: 1
+        buyer:
+          $ref: '#/components/schemas/UCPBuyer'
+
+    UCPCartUpdateRequest:
+      type: object
+      required: [id, line_items]
+      properties:
+        id:
+          type: string
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLineItem'
+          minItems: 1
+        buyer:
+          $ref: '#/components/schemas/UCPBuyer'
+
+    CartListResponse:
+      type: object
+      properties:
+        carts:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPCart'
+        total:
+          type: integer
+
+    UCPCheckout:
+      type: object
+      required: [ucp, id, line_items, status, currency, totals, links]
+      properties:
+        ucp:
+          $ref: '#/components/schemas/UCPMetadata'
+        id:
+          type: string
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLineItem'
+        status:
+          type: string
+          enum: [incomplete, requires_escalation, ready_for_complete, complete_in_progress, completed, canceled]
+        currency:
+          type: string
+        totals:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPTotal'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLink'
+        buyer:
+          $ref: '#/components/schemas/UCPBuyer'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPMessage'
+          description: Structured error/warning messages for LLM consumption
+        expires_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when checkout session expires (TTL 24h from creation)
+          example: "2026-02-03T14:00:00.000Z"
+        continue_url:
+          type: string
+        order:
+          $ref: '#/components/schemas/UCPOrderConfirmation'
+        fulfillment:
+          $ref: '#/components/schemas/UCPFulfillment'
+        discount:
+          $ref: '#/components/schemas/UCPDiscount'
+
+    UCPMessage:
+      type: object
+      required: [type, code, message]
+      properties:
+        type:
+          type: string
+          enum: [error, warning, info]
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "missing_buyer_email"
+        message:
+          type: string
+          description: Human-readable message
+        field:
+          type: string
+          description: Field path that caused the error
+
+    UCPCheckoutCreateRequest:
+      type: object
+      required: [line_items]
+      properties:
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLineItem'
+          minItems: 1
+        buyer:
+          $ref: '#/components/schemas/UCPBuyer'
+        cart_id:
+          type: string
+        fulfillment:
+          type: object
+          properties:
+            destination:
+              $ref: '#/components/schemas/UCPAddress'
+
+    UCPCheckoutUpdateRequest:
+      type: object
+      required: [id, line_items]
+      properties:
+        id:
+          type: string
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLineItem'
+        buyer:
+          $ref: '#/components/schemas/UCPBuyer'
+        fulfillment:
+          type: object
+          properties:
+            destination:
+              $ref: '#/components/schemas/UCPAddress'
+
+    UCPCheckoutCompleteRequest:
+      type: object
+      required: [payment]
+      properties:
+        payment:
+          type: object
+          properties:
+            method:
+              type: string
+            token:
+              type: string
+            billing_address:
+              $ref: '#/components/schemas/UCPAddress'
+
+    UCPLink:
+      type: object
+      required: [rel, href]
+      properties:
+        rel:
+          type: string
+        href:
+          type: string
+        title:
+          type: string
+
+    UCPOrderConfirmation:
+      type: object
+      properties:
+        id:
+          type: string
+        number:
+          type: string
+        permalink_url:
+          type: string
+
+    UCPOrder:
+      type: object
+      required: [ucp, id, checkout_id, permalink_url, line_items, fulfillment, totals]
+      properties:
+        ucp:
+          $ref: '#/components/schemas/UCPMetadata'
+        id:
+          type: string
+        checkout_id:
+          type: string
+        permalink_url:
+          type: string
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPOrderLineItem'
+        fulfillment:
+          type: object
+          properties:
+            expectations:
+              type: array
+              items:
+                $ref: '#/components/schemas/UCPExpectation'
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/UCPFulfillmentEvent'
+        totals:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPTotal'
+        adjustments:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPAdjustment'
+
+    UCPOrderLineItem:
+      allOf:
+        - $ref: '#/components/schemas/UCPLineItem'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+            fulfilled_quantity:
+              type: integer
+            fulfillable_quantity:
+              type: integer
+
+    UCPExpectation:
+      type: object
+      properties:
+        id:
+          type: string
+        line_item_ids:
+          type: array
+          items:
+            type: string
+        method:
+          type: string
+        estimated_delivery:
+          type: string
+        destination:
+          $ref: '#/components/schemas/UCPAddress'
+
+    UCPFulfillmentEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        line_item_ids:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [pending, in_transit, delivered, failed, out_for_delivery, ready_for_pickup]
+        tracking_number:
+          type: string
+        tracking_url:
+          type: string
+        carrier:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    UCPAdjustment:
+      type: object
+      required: [id, type, amount]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [discount, shipping, tax, refund, fee]
+        amount:
+          $ref: '#/components/schemas/UCPMoneyValue'
+        reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    UCPPayment:
+      type: object
+      required: [method]
+      properties:
+        method:
+          type: string
+          enum: [credit_card, digital_wallet, store_credit, other]
+        token:
+          type: string
+        payment_url:
+          type: string
+        billing_address:
+          $ref: '#/components/schemas/UCPAddress'
+
+    UCPDiscount:
+      type: object
+      required: [code, amount]
+      properties:
+        code:
+          type: string
+        amount:
+          $ref: '#/components/schemas/UCPMoneyValue'
+        description:
+          type: string
+
+    UCPFulfillment:
+      type: object
+      properties:
+        method:
+          type: string
+        tracking:
+          type: array
+          items:
+            type: object
+            properties:
+              number:
+                type: string
+              url:
+                type: string
+              carrier:
+                type: string
+        destination:
+          $ref: '#/components/schemas/UCPAddress'
+
+    OrderListResponse:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPOrder'
+        total:
+          type: integer
