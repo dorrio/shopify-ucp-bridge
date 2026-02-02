@@ -10,6 +10,8 @@ Successfully created a Shopify embedded app that implements the Universal Commer
 - **Checkout Capability** (`dev.ucp.shopping.checkout`) - Full checkout lifecycle management
 - **Order Capability** (`dev.ucp.shopping.order`) - Order tracking with fulfillment events
 - **Fulfillment Extension** - Shipping options and tracking
+- **MCP Transport** - Direct LLM tool integration via Model Context Protocol
+- **CORS Support** - Browser-based AI agent access
 
 ## Quick Start
 
@@ -83,7 +85,8 @@ Successfully created a Shopify embedded app that implements the Universal Commer
 
 ### Profile Discovery
 ```
-GET /ucp-profile                      Discover UCP capabilities
+GET  /.well-known/ucp              Redirects to /ucp-profile (301)
+GET  /ucp-profile                  Discover UCP capabilities & transports
 ```
 
 ### Cart API
@@ -110,6 +113,50 @@ GET /orders          List orders
 GET /orders/:id      Get order by ID
 ```
 
+## MCP Transport
+
+The app includes a standalone MCP (Model Context Protocol) server for direct LLM tool integration.
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `create_checkout` | Create a new checkout session |
+| `get_checkout` | Get checkout by ID |
+| `update_checkout` | Update buyer/shipping info |
+| `complete_checkout` | Complete and convert to order |
+| `cancel_checkout` | Cancel checkout session |
+| `create_cart` | Create a new cart |
+| `get_cart` | Get cart by ID |
+| `update_cart` | Update cart items |
+| `delete_cart` | Delete a cart |
+| `get_order` | Get order by ID |
+| `list_orders` | List all orders |
+
+### Running the MCP Server
+
+```bash
+# Start MCP server (stdio transport)
+pnpm run mcp
+```
+
+### Claude Desktop / Cursor Configuration
+
+```json
+{
+  "mcpServers": {
+    "ucp-shopify": {
+      "command": "npx",
+      "args": ["tsx", "scripts/mcp-server.ts"],
+      "cwd": "/path/to/shopify-ucp-bridge",
+      "env": {
+        "SHOPIFY_STORE_URL": "https://your-store.myshopify.com",
+        "SHOPIFY_ACCESS_TOKEN": "shpat_..."
+      }
+    }
+  }
+}
+
 ## UCP Protocol Mapping
 
 | UCP Entity | Shopify Entity |
@@ -123,27 +170,34 @@ GET /orders/:id      Get order by ID
 ## Project Structure
 
 ```
-shopify-app/
+shopify-ucp-bridge/
 ├── app/
 │   ├── routes/
-│   │   ├── app._index.tsx       # Dashboard
-│   │   ├── app.settings.tsx     # Settings page
-│   │   ├── carts.ts             # Cart API (Active)
-│   │   ├── checkout-sessions.ts # Checkout API (Active)
-│   │   ├── orders.ts            # Order API (Active)
-│   │   ├── ucp-profile.ts       # Profile Discovery
-│   │   ├── api.ucp.checkout.ts  # Legacy Checkout API (Redirect)
-│   │   └── api.ucp.order.ts     # Legacy Order API (Redirect)
+│   │   ├── app._index.tsx            # Dashboard
+│   │   ├── app.settings.tsx          # Settings page
+│   │   ├── carts.ts                  # Cart API
+│   │   ├── carts.$id.ts              # Cart by ID
+│   │   ├── checkout-sessions.ts      # Checkout API
+│   │   ├── checkout-sessions.$id.ts  # Checkout by ID
+│   │   ├── orders.ts                 # Order API
+│   │   ├── orders.$id.ts             # Order by ID
+│   │   ├── ucp-profile.ts            # Profile Discovery (with CORS)
+│   │   └── [.well-known].ucp.ts      # /.well-known/ucp redirect
 │   ├── services/ucp/
-│   │   ├── cartService.ts       # Cart operations
-│   │   ├── checkoutService.ts   # Checkout operations
-│   │   ├── orderService.ts      # Order operations
-│   │   └── types/index.ts       # UCP type definitions
-│   ├── shopify.server.ts        # Shopify configuration
-│   └── db.server.ts             # Database client
+│   │   ├── cartService.ts            # Cart operations
+│   │   ├── checkoutService.ts        # Checkout operations
+│   │   ├── orderService.ts           # Order operations
+│   │   └── types/index.ts            # UCP type definitions
+│   ├── utils/
+│   │   ├── cors.ts                   # CORS middleware
+│   │   └── ucpMiddleware.ts          # UCP-Agent header validation
+│   ├── shopify.server.ts             # Shopify configuration
+│   └── db.server.ts                  # Database client
+├── scripts/
+│   └── mcp-server.ts                 # MCP server (stdio transport)
 ├── prisma/
-│   └── schema.prisma            # Database schema
-├── shopify.app.toml             # Shopify CLI config
+│   └── schema.prisma                 # Database schema
+├── shopify.app.toml                  # Shopify CLI config
 └── package.json
 ```
 

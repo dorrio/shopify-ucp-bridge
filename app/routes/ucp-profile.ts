@@ -1,19 +1,28 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
+import { buildCORSHeaders, handleCORSPreflight } from "../utils/cors";
 
 /**
  * UCP Profile Discovery Endpoint
  * https://ucp.dev/latest/specification/overview/#services
  * 
  * GET /ucp-profile - Returns business capabilities for UCP agents
+ * OPTIONS /ucp-profile - CORS preflight
  * 
  * This allows AI agents to discover what UCP capabilities this business supports.
+ * CORS is enabled to allow browser-based AI agents to access this endpoint.
  */
 
 export async function loader({ request }: LoaderFunctionArgs) {
+    // Handle CORS preflight
+    const preflight = handleCORSPreflight(request);
+    if (preflight) return preflight;
+
     console.log(`[UCP Profile] Request received: ${request.url}`);
     const url = new URL(request.url);
     const baseUrl = `${url.protocol}//${url.host}`;
+
+    const corsHeaders = buildCORSHeaders(request);
 
     return json({
         version: "2026-01-01",
@@ -87,6 +96,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }, {
         headers: {
             "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+            ...corsHeaders,
         },
     });
 }
+

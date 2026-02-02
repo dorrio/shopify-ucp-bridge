@@ -30,6 +30,8 @@ servers:
         description: Your deployed app URL
 
 tags:
+  - name: Profile
+    description: UCP profile discovery endpoints
   - name: Cart
     description: Cart operations (dev.ucp.shopping.cart)
   - name: Checkout
@@ -37,19 +39,78 @@ tags:
   - name: Order
     description: Order tracking (dev.ucp.shopping.order)
 
+x-cors:
+  description: |
+    All UCP endpoints support CORS for browser-based AI agents.
+    Headers returned:
+    - Access-Control-Allow-Origin: *
+    - Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+    - Access-Control-Allow-Headers: Content-Type, Authorization, UCP-Agent
+    - Access-Control-Max-Age: 86400
+
+security:
+  - ShopifySession: []
+  - UCPAgent: []
+
 paths:
+  /.well-known/ucp:
+    get:
+      tags: [Profile]
+      summary: UCP discovery redirect
+      description: |
+        Standard UCP discovery endpoint. Returns a 301 redirect to /ucp-profile.
+        This follows the UCP specification for profile discoverability.
+      security: []  # Public endpoint
+      responses:
+        '301':
+          description: Redirect to /ucp-profile
+          headers:
+            Location:
+              schema:
+                type: string
+              example: /ucp-profile
+
   /ucp-profile:
     get:
       tags: [Profile]
       summary: Discover UCP capabilities
-      description: Returns business capabilities and service definitions for AI agents.
+      description: |
+        Returns business capabilities, service definitions, and transport bindings for AI agents.
+        Includes both REST and MCP transport options.
+      security: []  # Public endpoint
       responses:
         '200':
           description: Profile retrieved successfully
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              example: "*"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UCPMetadata'
+                $ref: '#/components/schemas/UCPProfile'
+    options:
+      tags: [Profile]
+      summary: CORS preflight
+      description: Handle CORS preflight requests for browser-based AI agents
+      security: []  # Public endpoint
+      responses:
+        '204':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              example: "*"
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+              example: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+              example: "Content-Type, Authorization, UCP-Agent"
 
   /carts:
     parameters:
@@ -140,7 +201,7 @@ paths:
         '404':
           description: Cart not found
 
-  /api/ucp/checkout:
+  /checkout-sessions:
     parameters:
       - $ref: '#/components/parameters/UCPAgentHeader'
     get:
@@ -189,7 +250,7 @@ paths:
                     amount: { amount: 18754, currency_code: "EUR" }
                 links:
                   - rel: "self"
-                    href: "/api/ucp/checkout/gid://shopify/DraftOrder/123456789"
+                    href: "/checkout-sessions/gid://shopify/DraftOrder/123456789"
                   - rel: "checkout"
                     href: "https://shop.myshopify.com/checkout/invoice/..."
                     title: "Complete checkout"
@@ -350,7 +411,7 @@ paths:
               example:
                 error: "Checkout not found or could not be canceled"
 
-  /api/ucp/order:
+  /orders:
     parameters:
       - $ref: '#/components/parameters/UCPAgentHeader'
     get:
@@ -437,6 +498,22 @@ paths:
                 error: "Order not found"
 
 components:
+  securitySchemes:
+    ShopifySession:
+      type: apiKey
+      in: cookie
+      name: shopify_session
+      description: |
+        Shopify session authentication via embedded app.
+        Required for endpoints that modify data.
+    UCPAgent:
+      type: apiKey
+      in: header
+      name: UCP-Agent
+      description: |
+        UCP Agent identification header.
+        Format: AgentName/Version (PlatformName/Version; +ProfileURL)
+
   parameters:
     UCPAgentHeader:
       name: UCP-Agent
@@ -450,6 +527,51 @@ components:
       example: "MyAI/1.0 (Shopify/2.0; +https://shopify.com/profile)"
 
   schemas:
+    UCPProfile:
+      type: object
+      required: [version, name, services, capabilities]
+      properties:
+        version:
+          type: string
+          example: "2026-01-01"
+        name:
+          type: string
+          example: "Shopify UCP Bridge"
+        description:
+          type: string
+        services:
+          type: object
+          description: |
+            Transport bindings for UCP services.
+            Includes REST and MCP transport options.
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                version:
+                  type: string
+                transport:
+                  type: string
+                  enum: [rest, mcp]
+                schema:
+                  type: string
+                endpoint:
+                  type: string
+                tools:
+                  type: array
+                  items:
+                    type: string
+                  description: MCP tool names (for mcp transport)
+        capabilities:
+          type: object
+        features:
+          type: object
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/UCPLink'
+
     UCPMoney:
       type: object
       required: [amount, currency_code]
@@ -844,7 +966,7 @@ components:
           type: string
           enum: [discount, shipping, tax, refund, fee]
         amount:
-          $ref: '#/components/schemas/UCPMoneyValue'
+          $ref: '#/components/schemas/UCPMoney'
         reason:
           type: string
         created_at:
@@ -872,7 +994,7 @@ components:
         code:
           type: string
         amount:
-          $ref: '#/components/schemas/UCPMoneyValue'
+          $ref: '#/components/schemas/UCPMoney'
         description:
           type: string
 
