@@ -22,12 +22,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
         // Services advertise transport bindings
         services: {
-            "dev.ucp.shopping": [{
-                version: "2026-01-01",
-                transport: "rest",
-                schema: "https://ucp.dev/services/shopping/rest.openapi.json",
-                endpoint: baseUrl,
-            }],
+            "dev.ucp.shopping": [
+                {
+                    version: "2026-01-01",
+                    transport: "rest",
+                    schema: "https://ucp.dev/services/shopping/rest.openapi.json",
+                    endpoint: baseUrl,
+                },
+                {
+                    version: "2026-01-01",
+                    transport: "mcp",
+                    schema: "https://ucp.dev/services/shopping/mcp.json",
+                    endpoint: "stdio",
+                    tools: [
+                        "create_checkout", "get_checkout", "update_checkout", "complete_checkout", "cancel_checkout",
+                        "create_cart", "get_cart", "update_cart", "delete_cart",
+                        "get_order", "list_orders",
+                    ],
+                },
+            ],
         },
 
         // Capabilities list specific features

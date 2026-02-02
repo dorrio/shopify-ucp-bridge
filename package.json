@@ -10,9 +10,11 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "shopify": "shopify",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "mcp": "npx tsx scripts/mcp-server.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "@prisma/client": "^6.2.0",
     "@remix-run/node": "^2.15.0",
     "@remix-run/react": "^2.15.0",
