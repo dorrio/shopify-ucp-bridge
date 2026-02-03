@@ -1,0 +1,336 @@
+{
+  "buildManifest": {
+    "serverBundles": {
+      "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0": {
+        "id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+        "file": "build/server/nodejs-eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    },
+    "routeIdToServerBundleId": {
+      "root": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/[.well-known].agent-card[.json]": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/checkout-sessions.$id.complete": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.ucp.checkout.$id.complete": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/checkout-sessions.$id.cancel": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.ucp.checkout.$id.cancel": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/checkout-sessions.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.ucp.checkout.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/[.well-known].ucp": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.ucp.order.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/checkout-sessions": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.ucp.checkout": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.ucp.order": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.settings": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/ucp-profile": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app._index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/orders.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/carts.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/orders": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/carts": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0"
+    },
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "app/root.tsx",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/[.well-known].agent-card[.json]": {
+        "file": "app/routes/[.well-known].agent-card[.json].ts",
+        "id": "routes/[.well-known].agent-card[.json]",
+        "path": ".well-known/agent-card.json",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/checkout-sessions.$id.complete": {
+        "file": "app/routes/checkout-sessions.$id.complete.ts",
+        "id": "routes/checkout-sessions.$id.complete",
+        "path": "complete",
+        "parentId": "routes/checkout-sessions.$id",
+        "config": {}
+      },
+      "routes/api.ucp.checkout.$id.complete": {
+        "file": "app/routes/api.ucp.checkout.$id.complete.ts",
+        "id": "routes/api.ucp.checkout.$id.complete",
+        "path": "complete",
+        "parentId": "routes/api.ucp.checkout.$id",
+        "config": {}
+      },
+      "routes/checkout-sessions.$id.cancel": {
+        "file": "app/routes/checkout-sessions.$id.cancel.ts",
+        "id": "routes/checkout-sessions.$id.cancel",
+        "path": "cancel",
+        "parentId": "routes/checkout-sessions.$id",
+        "config": {}
+      },
+      "routes/api.ucp.checkout.$id.cancel": {
+        "file": "app/routes/api.ucp.checkout.$id.cancel.ts",
+        "id": "routes/api.ucp.checkout.$id.cancel",
+        "path": "cancel",
+        "parentId": "routes/api.ucp.checkout.$id",
+        "config": {}
+      },
+      "routes/checkout-sessions.$id": {
+        "file": "app/routes/checkout-sessions.$id.ts",
+        "id": "routes/checkout-sessions.$id",
+        "path": ":id",
+        "parentId": "routes/checkout-sessions",
+        "config": {}
+      },
+      "routes/api.ucp.checkout.$id": {
+        "file": "app/routes/api.ucp.checkout.$id.ts",
+        "id": "routes/api.ucp.checkout.$id",
+        "path": ":id",
+        "parentId": "routes/api.ucp.checkout",
+        "config": {}
+      },
+      "routes/[.well-known].ucp": {
+        "file": "app/routes/[.well-known].ucp.ts",
+        "id": "routes/[.well-known].ucp",
+        "path": ".well-known/ucp",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/api.ucp.order.$id": {
+        "file": "app/routes/api.ucp.order.$id.ts",
+        "id": "routes/api.ucp.order.$id",
+        "path": ":id",
+        "parentId": "routes/api.ucp.order",
+        "config": {}
+      },
+      "routes/checkout-sessions": {
+        "file": "app/routes/checkout-sessions.ts",
+        "id": "routes/checkout-sessions",
+        "path": "checkout-sessions",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/api.ucp.checkout": {
+        "file": "app/routes/api.ucp.checkout.ts",
+        "id": "routes/api.ucp.checkout",
+        "path": "api/ucp/checkout",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/api.ucp.order": {
+        "file": "app/routes/api.ucp.order.ts",
+        "id": "routes/api.ucp.order",
+        "path": "api/ucp/order",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/app.settings": {
+        "file": "app/routes/app.settings.tsx",
+        "id": "routes/app.settings",
+        "path": "settings",
+        "parentId": "routes/app",
+        "config": {}
+      },
+      "routes/ucp-profile": {
+        "file": "app/routes/ucp-profile.ts",
+        "id": "routes/ucp-profile",
+        "path": "ucp-profile",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/app._index": {
+        "file": "app/routes/app._index.tsx",
+        "id": "routes/app._index",
+        "index": true,
+        "parentId": "routes/app",
+        "config": {}
+      },
+      "routes/orders.$id": {
+        "file": "app/routes/orders.$id.ts",
+        "id": "routes/orders.$id",
+        "path": ":id",
+        "parentId": "routes/orders",
+        "config": {}
+      },
+      "routes/carts.$id": {
+        "file": "app/routes/carts.$id.ts",
+        "id": "routes/carts.$id",
+        "path": ":id",
+        "parentId": "routes/carts",
+        "config": {}
+      },
+      "routes/orders": {
+        "file": "app/routes/orders.ts",
+        "id": "routes/orders",
+        "path": "orders",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/carts": {
+        "file": "app/routes/carts.ts",
+        "id": "routes/carts",
+        "path": "carts",
+        "parentId": "root",
+        "config": {}
+      },
+      "routes/app": {
+        "file": "app/routes/app.tsx",
+        "id": "routes/app",
+        "path": "app",
+        "parentId": "root",
+        "config": {}
+      }
+    }
+  },
+  "remixConfig": {
+    "appDirectory": "/Users/j.dorrio.rodriguez/Documents/Proyectos/cliente-x/shopify-ucp-bridge/app",
+    "basename": "/",
+    "buildDirectory": "/Users/j.dorrio.rodriguez/Documents/Proyectos/cliente-x/shopify-ucp-bridge/build",
+    "future": {
+      "v3_fetcherPersist": true,
+      "v3_relativeSplatPath": true,
+      "v3_throwAbortReason": true,
+      "v3_routeConfig": false,
+      "v3_singleFetch": true,
+      "v3_lazyRouteDiscovery": true,
+      "unstable_optimizeDeps": false
+    },
+    "manifest": false,
+    "publicPath": "/",
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "root.tsx"
+      },
+      "routes/[.well-known].agent-card[.json]": {
+        "file": "routes/[.well-known].agent-card[.json].ts",
+        "id": "routes/[.well-known].agent-card[.json]",
+        "path": ".well-known/agent-card.json",
+        "parentId": "root"
+      },
+      "routes/checkout-sessions.$id.complete": {
+        "file": "routes/checkout-sessions.$id.complete.ts",
+        "id": "routes/checkout-sessions.$id.complete",
+        "path": "complete",
+        "parentId": "routes/checkout-sessions.$id"
+      },
+      "routes/api.ucp.checkout.$id.complete": {
+        "file": "routes/api.ucp.checkout.$id.complete.ts",
+        "id": "routes/api.ucp.checkout.$id.complete",
+        "path": "complete",
+        "parentId": "routes/api.ucp.checkout.$id"
+      },
+      "routes/checkout-sessions.$id.cancel": {
+        "file": "routes/checkout-sessions.$id.cancel.ts",
+        "id": "routes/checkout-sessions.$id.cancel",
+        "path": "cancel",
+        "parentId": "routes/checkout-sessions.$id"
+      },
+      "routes/api.ucp.checkout.$id.cancel": {
+        "file": "routes/api.ucp.checkout.$id.cancel.ts",
+        "id": "routes/api.ucp.checkout.$id.cancel",
+        "path": "cancel",
+        "parentId": "routes/api.ucp.checkout.$id"
+      },
+      "routes/checkout-sessions.$id": {
+        "file": "routes/checkout-sessions.$id.ts",
+        "id": "routes/checkout-sessions.$id",
+        "path": ":id",
+        "parentId": "routes/checkout-sessions"
+      },
+      "routes/api.ucp.checkout.$id": {
+        "file": "routes/api.ucp.checkout.$id.ts",
+        "id": "routes/api.ucp.checkout.$id",
+        "path": ":id",
+        "parentId": "routes/api.ucp.checkout"
+      },
+      "routes/[.well-known].ucp": {
+        "file": "routes/[.well-known].ucp.ts",
+        "id": "routes/[.well-known].ucp",
+        "path": ".well-known/ucp",
+        "parentId": "root"
+      },
+      "routes/api.ucp.order.$id": {
+        "file": "routes/api.ucp.order.$id.ts",
+        "id": "routes/api.ucp.order.$id",
+        "path": ":id",
+        "parentId": "routes/api.ucp.order"
+      },
+      "routes/checkout-sessions": {
+        "file": "routes/checkout-sessions.ts",
+        "id": "routes/checkout-sessions",
+        "path": "checkout-sessions",
+        "parentId": "root"
+      },
+      "routes/api.ucp.checkout": {
+        "file": "routes/api.ucp.checkout.ts",
+        "id": "routes/api.ucp.checkout",
+        "path": "api/ucp/checkout",
+        "parentId": "root"
+      },
+      "routes/api.ucp.order": {
+        "file": "routes/api.ucp.order.ts",
+        "id": "routes/api.ucp.order",
+        "path": "api/ucp/order",
+        "parentId": "root"
+      },
+      "routes/app.settings": {
+        "file": "routes/app.settings.tsx",
+        "id": "routes/app.settings",
+        "path": "settings",
+        "parentId": "routes/app"
+      },
+      "routes/ucp-profile": {
+        "file": "routes/ucp-profile.ts",
+        "id": "routes/ucp-profile",
+        "path": "ucp-profile",
+        "parentId": "root"
+      },
+      "routes/app._index": {
+        "file": "routes/app._index.tsx",
+        "id": "routes/app._index",
+        "index": true,
+        "parentId": "routes/app"
+      },
+      "routes/orders.$id": {
+        "file": "routes/orders.$id.ts",
+        "id": "routes/orders.$id",
+        "path": ":id",
+        "parentId": "routes/orders"
+      },
+      "routes/carts.$id": {
+        "file": "routes/carts.$id.ts",
+        "id": "routes/carts.$id",
+        "path": ":id",
+        "parentId": "routes/carts"
+      },
+      "routes/orders": {
+        "file": "routes/orders.ts",
+        "id": "routes/orders",
+        "path": "orders",
+        "parentId": "root"
+      },
+      "routes/carts": {
+        "file": "routes/carts.ts",
+        "id": "routes/carts",
+        "path": "carts",
+        "parentId": "root"
+      },
+      "routes/app": {
+        "file": "routes/app.tsx",
+        "id": "routes/app",
+        "path": "app",
+        "parentId": "root"
+      }
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": true
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}
