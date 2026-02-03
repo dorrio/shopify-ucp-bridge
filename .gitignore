@@ -31,3 +31,5 @@ Thumbs.db
 
 # Test scripts
 test-transformers.ts
+.vercel
+.env*.local

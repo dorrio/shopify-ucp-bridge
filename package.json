@@ -13,7 +13,8 @@
     "typecheck": "tsc",
     "mcp": "npx tsx scripts/mcp-server.ts",
     "mcp:sse": "npx tsx scripts/mcp-server-sse.ts",
-    "a2a": "npx tsx scripts/a2a-server.ts"
+    "a2a": "npx tsx scripts/a2a-server.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@a2a-js/sdk": "^0.3.9",
