@@ -35,11 +35,11 @@ export async function authenticateUCP(request: Request) {
             }
 
             // Construct an Admin Rest & Graphql client similar to what authenticate.admin returns
-            const { rest, graphql } = shopify.api.clients;
-
+            // Construct an Admin Rest & Graphql client
+            // We need to access the underlying API library to instantiate clients
             const admin = {
-                rest: new rest({ session }),
-                graphql: new graphql({ session }),
+                rest: new shopify.api.clients.Rest({ session }),
+                graphql: new shopify.api.clients.Graphql({ session }),
             };
 
             return {
