@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { authenticate } from "../shopify.server";
+import { authenticateUCP } from "../utils/ucp-auth.server";
 import { CheckoutService } from "../services/ucp";
 import type { UCPCheckoutCreateRequest } from "../services/ucp";
 import { parseUCPLineItems, formatUCPCheckoutResponse } from "../utils/ucpTransformers";
@@ -14,7 +14,7 @@ import { parseUCPLineItems, formatUCPCheckoutResponse } from "../utils/ucpTransf
  */
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    const { admin } = await authenticate.admin(request);
+    const { admin } = await authenticateUCP(request);
 
     // Validate UCP Headers
     const headerValidation = validateUCPHeaders(request, true);
@@ -55,7 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 import { validateUCPHeaders } from "../utils/ucpMiddleware";
 
 export async function action({ request }: ActionFunctionArgs) {
-    const { admin } = await authenticate.admin(request);
+    const { admin } = await authenticateUCP(request);
 
     // Validate UCP Headers
     const headerValidation = validateUCPHeaders(request, true);
