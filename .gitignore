@@ -33,3 +33,4 @@ Thumbs.db
 test-transformers.ts
 .vercel
 .env*.local
+.env.production
