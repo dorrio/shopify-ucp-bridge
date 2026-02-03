@@ -92,6 +92,9 @@ Use JSON-RPC 2.0 format for tool calls via POST.
 
 /**
  * POST /api/mcp - Handle JSON-RPC requests
+ * 
+ * Discovery methods (initialize, tools/list, ping) work without authentication.
+ * Tool calls (tools/call) require Shopify authentication.
  */
 export async function action({ request }: ActionFunctionArgs) {
     // Handle CORS preflight
@@ -102,57 +105,143 @@ export async function action({ request }: ActionFunctionArgs) {
         });
     }
 
+    let body: any;
     try {
-        const { admin } = await authenticateUCP(request);
-        const mcpService = new MCPService(admin);
-
-        const body = await request.json();
-
-        // Handle batch requests
-        if (Array.isArray(body)) {
-            const responses = await Promise.all(
-                body.map((req) => mcpService.handleRequest(req))
-            );
-            return json(responses, { headers: corsHeaders });
-        }
-
-        // Handle single request
-        const response = await mcpService.handleRequest(body);
-        return json(response, { headers: corsHeaders });
-    } catch (error) {
-        console.error("MCP action error:", error);
-
-        // Check if it's a JSON parse error
-        if (error instanceof SyntaxError) {
-            return json(
-                {
-                    jsonrpc: "2.0",
-                    id: null,
-                    error: {
-                        code: -32700,
-                        message: "Parse error: Invalid JSON",
-                    },
-                },
-                {
-                    status: 400,
-                    headers: corsHeaders,
-                }
-            );
-        }
-
+        body = await request.json();
+    } catch {
         return json(
             {
                 jsonrpc: "2.0",
                 id: null,
                 error: {
-                    code: -32000,
-                    message: error instanceof Error ? error.message : "Internal server error",
+                    code: -32700,
+                    message: "Parse error: Invalid JSON",
                 },
             },
             {
-                status: 500,
+                status: 400,
                 headers: corsHeaders,
             }
         );
+    }
+
+    // Check if this is an unauthenticated-safe method
+    const isPublicMethod = (method: string) =>
+        ["initialize", "tools/list", "ping"].includes(method);
+
+    // Handle batch requests
+    if (Array.isArray(body)) {
+        const requiresAuth = body.some(req => !isPublicMethod(req.method));
+
+        if (requiresAuth) {
+            try {
+                const { admin } = await authenticateUCP(request);
+                const mcpService = new MCPService(admin);
+                const responses = await Promise.all(
+                    body.map((req) => mcpService.handleRequest(req))
+                );
+                return json(responses, { headers: corsHeaders });
+            } catch (error) {
+                return json(
+                    body.map(req => ({
+                        jsonrpc: "2.0",
+                        id: req.id ?? null,
+                        error: {
+                            code: -32000,
+                            message: "Authentication required for this method",
+                        },
+                    })),
+                    { headers: corsHeaders }
+                );
+            }
+        } else {
+            // All methods are public - can handle without admin
+            const responses = body.map(req => handlePublicMethod(req));
+            return json(responses, { headers: corsHeaders });
+        }
+    }
+
+    // Handle single request
+    const method = body.method;
+
+    if (isPublicMethod(method)) {
+        // Handle public methods without authentication
+        const response = handlePublicMethod(body);
+        return json(response, { headers: corsHeaders });
+    }
+
+    // Requires authentication for tool calls
+    try {
+        const { admin } = await authenticateUCP(request);
+        const mcpService = new MCPService(admin);
+        const response = await mcpService.handleRequest(body);
+        return json(response, { headers: corsHeaders });
+    } catch (error) {
+        console.error("MCP action error:", error);
+        return json(
+            {
+                jsonrpc: "2.0",
+                id: body.id ?? null,
+                error: {
+                    code: -32000,
+                    message: error instanceof Error ? error.message : "Authentication failed",
+                },
+            },
+            {
+                status: 401,
+                headers: corsHeaders,
+            }
+        );
+    }
+}
+
+/**
+ * Handle public MCP methods that don't require authentication
+ */
+function handlePublicMethod(request: { jsonrpc: string; id?: string | number; method: string; params?: any }) {
+    const { id, method, params } = request;
+
+    switch (method) {
+        case "initialize":
+            return {
+                jsonrpc: "2.0",
+                id,
+                result: {
+                    protocolVersion: "2024-11-05",
+                    serverInfo: {
+                        name: "ucp-shopify-bridge",
+                        version: "1.0.0",
+                    },
+                    capabilities: {
+                        tools: {},
+                    },
+                },
+            };
+
+        case "tools/list":
+            return {
+                jsonrpc: "2.0",
+                id,
+                result: {
+                    tools: MCP_TOOLS,
+                },
+            };
+
+        case "ping":
+            return {
+                jsonrpc: "2.0",
+                id,
+                result: {},
+            };
+
+        default:
+            return {
+                jsonrpc: "2.0",
+                id,
+                error: {
+                    code: -32601,
+                    message: `Method not found: ${method}`,
+                },
+            };
     }
 }
