@@ -12,6 +12,7 @@
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
     "mcp": "npx tsx scripts/mcp-server.ts",
+    "mcp:sse": "npx tsx scripts/mcp-server-sse.ts",
     "a2a": "npx tsx scripts/a2a-server.ts"
   },
   "dependencies": {

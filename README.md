@@ -139,6 +139,9 @@ The app includes a standalone MCP (Model Context Protocol) server for direct LLM
 ```bash
 # Start MCP server (stdio transport)
 pnpm run mcp
+
+# Start MCP server (HTTP/SSE transport)
+pnpm run mcp:sse
 ```
 
 ### Claude Desktop / Cursor Configuration
