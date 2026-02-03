@@ -1,7 +1,8 @@
 import { type LoaderFunctionArgs, json } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
-import { Page, Layout, Card, Text, Button, TextField, BlockStack } from "@shopify/polaris";
+import { Page, Layout, Card, Text, Button, TextField, BlockStack, AppProvider } from "@shopify/polaris";
 import { useState, useCallback } from "react";
+import jpTranslations from "@shopify/polaris/locales/en.json";
 import { login } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -33,38 +34,40 @@ export default function Auth() {
     const handleChange = useCallback((newValue: string) => setShop(newValue), []);
 
     return (
-        <Page>
-            <Layout>
-                <Layout.Section>
-                    <Card>
-                        <BlockStack gap="400">
-                            <Text as="h1" variant="headingMd">
-                                Log in
-                            </Text>
-                            <Text as="p">
-                                Enter your shop domain to log in or install this app.
-                            </Text>
-                            {showForm && (
-                                <Form method="post">
-                                    <BlockStack gap="400">
-                                        <TextField
-                                            label="Shop domain"
-                                            name="shop"
-                                            value={shop}
-                                            onChange={handleChange}
-                                            autoComplete="organization"
-                                            placeholder="my-shop.myshopify.com"
-                                        />
-                                        <Button submit variant="primary">
-                                            Log in
-                                        </Button>
-                                    </BlockStack>
-                                </Form>
-                            )}
-                        </BlockStack>
-                    </Card>
-                </Layout.Section>
-            </Layout>
-        </Page>
+        <AppProvider i18n={jpTranslations}>
+            <Page>
+                <Layout>
+                    <Layout.Section>
+                        <Card>
+                            <BlockStack gap="400">
+                                <Text as="h1" variant="headingMd">
+                                    Log in
+                                </Text>
+                                <Text as="p">
+                                    Enter your shop domain to log in or install this app.
+                                </Text>
+                                {showForm && (
+                                    <Form method="post">
+                                        <BlockStack gap="400">
+                                            <TextField
+                                                label="Shop domain"
+                                                name="shop"
+                                                value={shop}
+                                                onChange={handleChange}
+                                                autoComplete="organization"
+                                                placeholder="my-shop.myshopify.com"
+                                            />
+                                            <Button submit variant="primary">
+                                                Log in
+                                            </Button>
+                                        </BlockStack>
+                                    </Form>
+                                )}
+                            </BlockStack>
+                        </Card>
+                    </Layout.Section>
+                </Layout>
+            </Page>
+        </AppProvider>
     );
 }
