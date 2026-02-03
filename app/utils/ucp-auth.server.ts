@@ -35,12 +35,12 @@ export async function authenticateUCP(request: Request) {
             }
 
             // Construct an Admin Rest & Graphql client similar to what authenticate.admin returns
-            // Construct an Admin Rest & Graphql client
-            // We need to access the underlying API library to instantiate clients
-            const admin = {
-                rest: new shopify.api.clients.Rest({ session }),
-                graphql: new shopify.api.clients.Graphql({ session }),
-            };
+            // 3. Use unauthenticated admin context (designed for background jobs / external access)
+            const { admin } = await shopify.unauthenticated.admin(session.shop);
+
+            if (!admin) {
+                throw new Error("Could not create admin context from offline session");
+            }
 
             return {
                 admin,
