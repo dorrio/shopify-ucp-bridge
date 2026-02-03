@@ -116,7 +116,18 @@ GET /orders/:id      Get order by ID
 
 ## MCP Transport
 
-The app includes a standalone MCP (Model Context Protocol) server for direct LLM tool integration.
+The app provides MCP (Model Context Protocol) integration for direct LLM tool access.
+
+### Deployed MCP Endpoint (Vercel)
+
+The MCP server is available as an HTTP endpoint when deployed:
+
+```
+POST https://shopify-ucp-bridge.vercel.app/api/mcp
+GET  https://shopify-ucp-bridge.vercel.app/api/mcp
+```
+
+**Transport:** Streamable HTTP (JSON-RPC 2.0)
 
 ### Available Tools
 
@@ -134,7 +145,86 @@ The app includes a standalone MCP (Model Context Protocol) server for direct LLM
 | `get_order` | Get order by ID |
 | `list_orders` | List all orders |
 
-### Running the MCP Server
+### Testing the MCP Endpoint
+
+```bash
+# List available tools
+curl -X POST https://shopify-ucp-bridge.vercel.app/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+
+# Initialize MCP session
+curl -X POST https://shopify-ucp-bridge.vercel.app/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {"name": "curl", "version": "1.0"}
+    },
+    "id": 1
+  }'
+
+# Call a tool (create checkout)
+curl -X POST https://shopify-ucp-bridge.vercel.app/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "list_orders",
+      "arguments": {"limit": 5}
+    },
+    "id": 2
+  }'
+```
+
+### AI Client Configuration
+
+#### Antigravity / Gemini
+
+Add the MCP server to your `.gemini/settings.json` or Antigravity configuration:
+
+```json
+{
+  "mcpServers": {
+    "ucp-shopify": {
+      "url": "https://shopify-ucp-bridge.vercel.app/api/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+#### VS Code (with MCP Extension)
+
+Add to your `.vscode/settings.json`:
+
+```json
+{
+  "mcp.servers": {
+    "ucp-shopify": {
+      "url": "https://shopify-ucp-bridge.vercel.app/api/mcp",
+      "transport": "http"
+    }
+  }
+}
+```
+
+#### ChatGPT (Custom GPT Actions)
+
+Use the OpenAPI spec at `/openapi.yaml` to configure actions:
+
+```yaml
+servers:
+  - url: https://shopify-ucp-bridge.vercel.app
+```
+
+### Standalone MCP Server (Local Development)
+
+For local development, you can run the MCP server as a standalone process:
 
 ```bash
 # Start MCP server (stdio transport)
@@ -144,7 +234,7 @@ pnpm run mcp
 pnpm run mcp:sse
 ```
 
-### Claude Desktop / Cursor Configuration
+### Claude Desktop / Cursor Configuration (Local)
 
 ```json
 {
@@ -295,6 +385,7 @@ shopify-ucp-bridge/
 │   ├── routes/
 │   │   ├── app._index.tsx                      # Dashboard
 │   │   ├── app.settings.tsx                    # Settings page
+│   │   ├── api.mcp.ts                          # MCP endpoint (Streamable HTTP)
 │   │   ├── carts.ts                            # Cart API
 │   │   ├── carts.$id.ts                        # Cart by ID
 │   │   ├── checkout-sessions.ts                # Checkout API
@@ -304,11 +395,13 @@ shopify-ucp-bridge/
 │   │   ├── ucp-profile.ts                      # Profile Discovery (with CORS)
 │   │   ├── [.well-known].ucp.ts                # /.well-known/ucp redirect
 │   │   └── [.well-known].agent-card[.json].ts  # A2A Agent Card (/.well-known/agent-card.json)
-│   ├── services/ucp/
-│   │   ├── cartService.ts                      # Cart operations
-│   │   ├── checkoutService.ts                  # Checkout operations
-│   │   ├── orderService.ts                     # Order operations
-│   │   └── types/index.ts                      # UCP type definitions
+│   ├── services/
+│   │   ├── mcp.server.ts                       # MCP service (JSON-RPC handler)
+│   │   └── ucp/
+│   │       ├── cartService.ts                  # Cart operations
+│   │       ├── checkoutService.ts              # Checkout operations
+│   │       ├── orderService.ts                 # Order operations
+│   │       └── types/index.ts                  # UCP type definitions
 │   ├── utils/
 │   │   ├── cors.ts                             # CORS middleware
 │   │   └── ucpMiddleware.ts                    # UCP-Agent header validation
@@ -316,9 +409,11 @@ shopify-ucp-bridge/
 │   └── db.server.ts                            # Database client
 ├── scripts/
 │   ├── mcp-server.ts                           # MCP server (stdio transport)
+│   ├── mcp-server-sse.ts                       # MCP server (SSE transport)
 │   └── a2a-server.ts                           # A2A server (HTTP transport)
 ├── prisma/
 │   └── schema.prisma                           # Database schema
+├── openapi.yaml                                # OpenAPI 3.0 specification
 ├── shopify.app.toml                            # Shopify CLI config
 └── package.json
 ```

@@ -38,6 +38,8 @@ tags:
     description: Checkout lifecycle (dev.ucp.shopping.checkout)
   - name: Order
     description: Order tracking (dev.ucp.shopping.order)
+  - name: MCP
+    description: Model Context Protocol (MCP) endpoint for AI agent integration
 
 x-cors:
   description: |
@@ -585,6 +587,153 @@ paths:
               example:
                 error: "Order not found"
 
+  /api/mcp:
+    get:
+      tags: [MCP]
+      summary: Get MCP server info and capabilities
+      description: |
+        Returns MCP server information, available tools, and usage instructions.
+        Compatible with Antigravity, VS Code, Gemini, ChatGPT, and other MCP clients.
+      security: []
+      responses:
+        '200':
+          description: Server info retrieved successfully
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPServerInfo'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPError'
+    post:
+      tags: [MCP]
+      summary: Handle JSON-RPC requests
+      description: |
+        Process MCP JSON-RPC 2.0 requests. Supports:
+        - `initialize` - Initialize MCP session
+        - `tools/list` - List available tools
+        - `tools/call` - Invoke a tool
+        - `ping` - Health check
+        
+        Available tools:
+        - Checkout: create_checkout, get_checkout, update_checkout, complete_checkout, cancel_checkout
+        - Cart: create_cart, get_cart, update_cart, delete_cart
+        - Orders: get_order, list_orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MCPRequest'
+            examples:
+              initialize:
+                summary: Initialize MCP session
+                value:
+                  jsonrpc: "2.0"
+                  id: 1
+                  method: "initialize"
+                  params:
+                    protocolVersion: "2024-11-05"
+                    capabilities: {}
+                    clientInfo:
+                      name: "MyAIClient"
+                      version: "1.0.0"
+              list_tools:
+                summary: List available tools
+                value:
+                  jsonrpc: "2.0"
+                  id: 2
+                  method: "tools/list"
+              call_tool:
+                summary: Call a tool (create checkout)
+                value:
+                  jsonrpc: "2.0"
+                  id: 3
+                  method: "tools/call"
+                  params:
+                    name: "create_checkout"
+                    arguments:
+                      line_items:
+                        - product_id: "gid://shopify/ProductVariant/123"
+                          quantity: 1
+                      buyer:
+                        email: "customer@example.com"
+      responses:
+        '200':
+          description: Request processed successfully
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPResponse'
+              examples:
+                initialize_response:
+                  summary: Initialize response
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      protocolVersion: "2024-11-05"
+                      serverInfo:
+                        name: "ucp-shopify-bridge"
+                        version: "1.0.0"
+                      capabilities:
+                        tools: {}
+                tools_list_response:
+                  summary: Tools list response
+                  value:
+                    jsonrpc: "2.0"
+                    id: 2
+                    result:
+                      tools:
+                        - name: "create_checkout"
+                          description: "Create a new UCP checkout session"
+                          inputSchema:
+                            type: "object"
+                            properties:
+                              line_items:
+                                type: "array"
+                            required: ["line_items"]
+        '400':
+          description: Invalid JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPResponse'
+    options:
+      tags: [MCP]
+      summary: CORS preflight
+      description: Handle CORS preflight for MCP endpoint
+      security: []
+      responses:
+        '204':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              example: "*"
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+              example: "GET, POST, OPTIONS"
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+              example: "Content-Type, Authorization, X-MCP-Session-Id"
+
 components:
   securitySchemes:
     ShopifySession:
@@ -1114,3 +1263,125 @@ components:
             $ref: '#/components/schemas/UCPOrder'
         total:
           type: integer
+
+    # MCP (Model Context Protocol) Schemas
+    MCPServerInfo:
+      type: object
+      required: [name, version, protocolVersion]
+      properties:
+        name:
+          type: string
+          example: "ucp-shopify-bridge"
+        version:
+          type: string
+          example: "1.0.0"
+        protocolVersion:
+          type: string
+          example: "2024-11-05"
+        description:
+          type: string
+          example: "Universal Commerce Protocol bridge for Shopify stores"
+        transport:
+          type: string
+          example: "streamable-http"
+        endpoints:
+          type: object
+          properties:
+            rpc:
+              type: string
+              example: "/api/mcp"
+        capabilities:
+          type: object
+          properties:
+            tools:
+              type: array
+              items:
+                $ref: '#/components/schemas/MCPToolSummary'
+        instructions:
+          type: string
+          description: Human-readable usage instructions for AI agents
+
+    MCPToolSummary:
+      type: object
+      required: [name, description]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    MCPRequest:
+      type: object
+      required: [jsonrpc, method]
+      properties:
+        jsonrpc:
+          type: string
+          enum: ["2.0"]
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+        method:
+          type: string
+          enum: ["initialize", "tools/list", "tools/call", "ping"]
+        params:
+          type: object
+
+    MCPResponse:
+      type: object
+      required: [jsonrpc]
+      properties:
+        jsonrpc:
+          type: string
+          enum: ["2.0"]
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: "null"
+        result:
+          type: object
+        error:
+          $ref: '#/components/schemas/MCPError'
+
+    MCPError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          description: |
+            Standard JSON-RPC error codes:
+            - -32700: Parse error
+            - -32600: Invalid request
+            - -32601: Method not found
+            - -32602: Invalid params
+            - -32603: Internal error
+            - -32000: Server error
+        message:
+          type: string
+        data:
+          type: object
+
+    MCPToolDefinition:
+      type: object
+      required: [name, description, inputSchema]
+      properties:
+        name:
+          type: string
+          example: "create_checkout"
+        description:
+          type: string
+          example: "Create a new UCP checkout session with line items"
+        inputSchema:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: ["object"]
+            properties:
+              type: object
+            required:
+              type: array
+              items:
+                type: string
