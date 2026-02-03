@@ -34,3 +34,4 @@ test-transformers.ts
 .vercel
 .env*.local
 .env.production
+.agent/rules/shopify-documentation.md
