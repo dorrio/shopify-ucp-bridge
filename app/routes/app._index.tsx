@@ -53,6 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 checkout: { status: "error", version: "2026-01-01" },
                 order: { status: "error", version: "2026-01-01" },
                 fulfillment: { status: "error", version: "2026-01-01" },
+                debug: { scopes: "Error", token: "no" }
             },
         });
     }
