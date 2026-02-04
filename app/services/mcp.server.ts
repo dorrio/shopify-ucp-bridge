@@ -141,6 +141,7 @@ export const MCP_TOOLS: MCPToolDefinition[] = [
                 },
                 shipping_address: {
                     type: "object",
+                    description: "Shipping address details (address1, city, zip, country)",
                     properties: {
                         address1: { type: "string" },
                         city: { type: "string" },
@@ -425,12 +426,25 @@ export class MCPService {
 
                 case "update_checkout": {
                     const transformedArgs = parseUCPLineItems(args);
-                    const { checkout_id, ...updateParams } = transformedArgs as { checkout_id?: string } & Record<string, unknown>;
+                    const { checkout_id, shipping_address, buyer, line_items, fulfillment, payment, context } = transformedArgs as any;
                     if (!checkout_id) throw new Error("checkout_id is required");
-                    result = await this.checkoutService.updateCheckout({
+
+                    // Combine direct parameters with UCP nested structures
+                    const updateRequest: any = {
                         id: checkout_id,
-                        ...updateParams
-                    } as unknown as UCPCheckoutUpdateRequest & { id: string });
+                        buyer: buyer || {},
+                        line_items,
+                        fulfillment: fulfillment || {},
+                        payment,
+                        context
+                    };
+
+                    // Map top-level 'shipping_address' from tool call to fulfillment.destination
+                    if (shipping_address) {
+                        updateRequest.fulfillment.destination = shipping_address;
+                    }
+
+                    result = await this.checkoutService.updateCheckout(updateRequest);
                     break;
                 }
 
