@@ -39,7 +39,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 fulfillment: { status: "active", version: "2026-01-01" },
                 debug: {
                     scopes: session.scope,
-                    token: session.accessToken ? "yes" : "no"
+                    token: session.accessToken ? "yes" : "no",
+                    error: undefined as string | undefined
                 }
             },
         });
