@@ -136,7 +136,10 @@ function mapShopifyStatusToUCP(draftOrder: any): UCPCheckoutStatus {
   if (draftOrder.status === "COMPLETED") {
     return "completed";
   }
-  if (draftOrder.invoiceUrl) {
+
+  // Strict validation: Only ready if we have email and shipping
+  // This matches the validation in completeCheckout
+  if (draftOrder.invoiceUrl && draftOrder.customer?.email && draftOrder.shippingAddress) {
     return "ready_for_complete";
   }
   return "incomplete";
