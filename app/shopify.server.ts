@@ -12,15 +12,15 @@ const shopify = shopifyApp({
     apiSecretKey: process.env.SHOPIFY_API_SECRET!,
     appUrl: process.env.SHOPIFY_APP_URL || "https://example.com",
     scopes: process.env.SCOPES?.split(",") ?? [
-        "read_products",
-        "write_products",
-        "read_orders",
-        "write_orders",
-        "read_draft_orders",
         "write_draft_orders",
+        "read_draft_orders",
         "read_fulfillments",
         "write_fulfillments",
         "read_inventory",
+        "read_orders",
+        "write_orders",
+        "read_products",
+        "write_products"
     ],
     apiVersion: ApiVersion.January26, // 2026-01 LTS
     isEmbeddedApp: true,

@@ -2,7 +2,7 @@
 
 client_id = "06e19424e4425b01064ebde4013e07fa"
 name = "UCP Interface"
-application_url = "https://bufing-virginia-hypothetical-adrian.trycloudflare.com"
+application_url = "https://shopify-ucp-bridge.vercel.app"
 embedded = true
 
 [build]
@@ -14,8 +14,13 @@ api_version = "2026-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_products,read_orders,write_orders,read_draft_orders,write_draft_orders,read_fulfillments,write_fulfillments,read_inventory"
+scopes = "write_draft_orders,read_draft_orders,read_fulfillments,write_fulfillments,read_inventory,read_orders,write_orders,read_products,write_products"
 optional_scopes = [ ]
+use_legacy_install_flow = false
 
 [auth]
-redirect_urls = [ ]
+redirect_urls = [
+  "https://shopify-ucp-bridge.vercel.app/auth/callback",
+  "https://shopify-ucp-bridge.vercel.app/auth/shopify/callback",
+  "https://shopify-ucp-bridge.vercel.app/api/webhooks"
+]
