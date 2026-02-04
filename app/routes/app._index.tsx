@@ -36,6 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 cart: { status: "active", version: "2026-01-01" },
                 checkout: { status: "active", version: "2026-01-01" },
                 order: { status: "active", version: "2026-01-01" },
+                product: { status: "active", version: "2026-01-01" },
                 fulfillment: { status: "active", version: "2026-01-01" },
                 debug: {
                     scopes: session.scope,
@@ -53,6 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 cart: { status: "error", version: "2026-01-01" },
                 checkout: { status: "error", version: "2026-01-01" },
                 order: { status: "error", version: "2026-01-01" },
+                product: { status: "error", version: "2026-01-01" },
                 fulfillment: { status: "error", version: "2026-01-01" },
                 debug: {
                     scopes: "Error",
@@ -147,6 +149,11 @@ export default function AppIndex() {
                                     name="Order"
                                     capability="dev.ucp.shopping.order"
                                     status={services.order.status}
+                                />
+                                <ServiceStatusCard
+                                    name="Product"
+                                    capability="dev.ucp.shopping.product"
+                                    status={services.product.status}
                                 />
                                 <ServiceStatusCard
                                     name="Fulfillment"
