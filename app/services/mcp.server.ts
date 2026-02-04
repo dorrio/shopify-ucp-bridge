@@ -11,6 +11,7 @@
 
 import type { AdminApiContext } from "@shopify/shopify-app-remix/server";
 import { CheckoutService, CartService, OrderService, ProductService } from "./ucp";
+import { parseUCPLineItems } from "../utils/ucpTransformers";
 import type {
     UCPCheckoutCreateRequest,
     UCPCheckoutUpdateRequest,
@@ -400,9 +401,11 @@ export class MCPService {
 
             switch (name) {
                 // Checkout tools
-                case "create_checkout":
-                    result = await this.checkoutService.createCheckout(args as unknown as UCPCheckoutCreateRequest);
+                case "create_checkout": {
+                    const transformedArgs = parseUCPLineItems(args);
+                    result = await this.checkoutService.createCheckout(transformedArgs as unknown as UCPCheckoutCreateRequest);
                     break;
+                }
 
                 case "get_checkout": {
                     const checkoutId = (args as { checkout_id?: string }).checkout_id;
@@ -412,7 +415,8 @@ export class MCPService {
                 }
 
                 case "update_checkout": {
-                    const { checkout_id, ...updateParams } = args as { checkout_id?: string } & Record<string, unknown>;
+                    const transformedArgs = parseUCPLineItems(args);
+                    const { checkout_id, ...updateParams } = transformedArgs as { checkout_id?: string } & Record<string, unknown>;
                     if (!checkout_id) throw new Error("checkout_id is required");
                     result = await this.checkoutService.updateCheckout({
                         id: checkout_id,
@@ -441,9 +445,11 @@ export class MCPService {
                 }
 
                 // Cart tools
-                case "create_cart":
-                    result = await this.cartService.createCart(args as unknown as UCPCartCreateRequest);
+                case "create_cart": {
+                    const transformedArgs = parseUCPLineItems(args);
+                    result = await this.cartService.createCart(transformedArgs as unknown as UCPCartCreateRequest);
                     break;
+                }
 
                 case "get_cart": {
                     const cartId = (args as { cart_id?: string }).cart_id;
@@ -453,7 +459,8 @@ export class MCPService {
                 }
 
                 case "update_cart": {
-                    const { cart_id, ...cartParams } = args as { cart_id?: string } & Record<string, unknown>;
+                    const transformedArgs = parseUCPLineItems(args);
+                    const { cart_id, ...cartParams } = transformedArgs as { cart_id?: string } & Record<string, unknown>;
                     if (!cart_id) throw new Error("cart_id is required");
                     result = await this.cartService.updateCart({
                         id: cart_id,
