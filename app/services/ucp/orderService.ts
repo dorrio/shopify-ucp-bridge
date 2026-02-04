@@ -383,4 +383,20 @@ export class OrderService {
 
     return transformShopifyOrderToUCP(order, checkoutId);
   }
+
+  /**
+   * Get total count of orders
+   */
+  async getOrderCount(): Promise<number> {
+    const response = await this.admin.graphql(`
+      query OrdersCount {
+        ordersCount {
+          count
+        }
+      }
+    `);
+
+    const data = await response.json();
+    return data.data?.ordersCount?.count || 0;
+  }
 }

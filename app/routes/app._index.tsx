@@ -21,16 +21,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const orderService = new OrderService(admin);
 
     try {
-        const [carts, orders] = await Promise.all([
-            cartService.listCarts(5),
-            orderService.listOrders(5),
+        const [cartCount, orderCount] = await Promise.all([
+            cartService.getCartCount(),
+            orderService.getOrderCount(),
         ]);
 
         return json({
             shop: session.shop,
             stats: {
-                activeCarts: carts.length,
-                recentOrders: orders.length,
+                activeCarts: cartCount,
+                recentOrders: orderCount,
             },
             services: {
                 cart: { status: "active", version: "2026-01-01" },

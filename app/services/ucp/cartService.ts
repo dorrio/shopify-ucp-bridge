@@ -307,4 +307,20 @@ export class CartService {
       transformShopifyDraftOrderToUCPCart(edge.node)
     ) || [];
   }
+
+  /**
+   * Get total count of carts (Draft Orders)
+   */
+  async getCartCount(): Promise<number> {
+    const response = await this.admin.graphql(`
+      query DraftOrdersCount {
+        draftOrdersCount {
+          count
+        }
+      }
+    `);
+
+    const data = await response.json();
+    return data.data?.draftOrdersCount?.count || 0;
+  }
 }
