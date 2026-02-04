@@ -20,7 +20,9 @@ const shopify = shopifyApp({
         "read_orders",
         "write_orders",
         "read_products",
-        "write_products"
+        "write_products",
+        "read_customers",
+        "write_customers"
     ],
     apiVersion: ApiVersion.January26, // 2026-01 LTS
     isEmbeddedApp: true,
