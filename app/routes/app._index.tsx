@@ -53,7 +53,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 checkout: { status: "error", version: "2026-01-01" },
                 order: { status: "error", version: "2026-01-01" },
                 fulfillment: { status: "error", version: "2026-01-01" },
-                debug: { scopes: "Error", token: "no" }
+                debug: {
+                    scopes: "Error",
+                    token: "no",
+                    error: error instanceof Error ? error.message : String(error)
+                }
             },
         });
     }
@@ -78,7 +82,10 @@ export default function AppIndex() {
                                 <BlockStack gap="200">
                                     <Text as="p"><strong>Shop:</strong> {shop}</Text>
                                     <Text as="p"><strong>Scopes:</strong> {services.debug?.scopes || 'N/A'}</Text>
-                                    <Text as="p"><strong>Token:</strong> {services.debug?.token ? 'Present (Masked)' : 'MISSING'}</Text>
+                                    <Text as="p"><strong>Token:</strong> {services.debug?.token === 'yes' ? 'Present (Masked)' : 'MISSING (or "no")'}</Text>
+                                    {services.debug?.error && (
+                                        <Text as="p" tone="critical"><strong>Error:</strong> {services.debug.error}</Text>
+                                    )}
                                 </BlockStack>
                             </Box>
                         </BlockStack>
