@@ -10,7 +10,7 @@
  */
 
 import type { AdminApiContext } from "@shopify/shopify-app-remix/server";
-import { CheckoutService, CartService, OrderService } from "./ucp";
+import { CheckoutService, CartService, OrderService, ProductService } from "./ucp";
 import type {
     UCPCheckoutCreateRequest,
     UCPCheckoutUpdateRequest,
@@ -281,6 +281,20 @@ export const MCP_TOOLS: MCPToolDefinition[] = [
             },
         },
     },
+
+    // Product Tools
+    {
+        name: "search_products",
+        description: "Search for products by title or description.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                query: { type: "string", description: "Search query (e.g. 'snowboard')" },
+                limit: { type: "number", description: "Max results (default: 5)" },
+            },
+            required: ["query"],
+        },
+    },
 ];
 
 // ============================================================================
@@ -291,11 +305,13 @@ export class MCPService {
     private checkoutService: CheckoutService;
     private cartService: CartService;
     private orderService: OrderService;
+    private productService: ProductService;
 
     constructor(admin: AdminApiContext) {
         this.checkoutService = new CheckoutService(admin);
         this.cartService = new CartService(admin);
         this.orderService = new OrderService(admin);
+        this.productService = new ProductService(admin);
     }
 
     /**
@@ -464,6 +480,17 @@ export class MCPService {
                 case "list_orders": {
                     const orderArgs = args as { limit?: number };
                     result = await this.orderService.listOrders(orderArgs.limit || 20);
+                    break;
+                }
+
+                // Product tools
+                case "search_products": {
+                    const productArgs = args as { query?: string; limit?: number };
+                    if (!productArgs.query) throw new Error("query is required");
+                    result = await this.productService.searchProducts({
+                        query: productArgs.query,
+                        first: productArgs.limit
+                    });
                     break;
                 }
 

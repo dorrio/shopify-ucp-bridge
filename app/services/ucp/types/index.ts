@@ -313,7 +313,38 @@ export interface UCPMessage {
 }
 
 export interface UCPLink {
-    rel: string;
     href: string;
     title?: string;
+}
+
+// ===== Product (dev.ucp.shopping.product) =====
+
+export interface UCPProduct {
+    id: string;
+    title: string;
+    description: string;
+    vendor: string;
+    product_type: string;
+    created_at: string;
+    updated_at: string;
+    tags: string[];
+    variants: UCPProductVariant[];
+    images: UCPImage[];
+}
+
+export interface UCPProductVariant {
+    id: string;
+    title: string;
+    price: UCPMoney;
+    sku?: string;
+    available_quantity?: number;
+    weight?: number;
+    weight_unit?: string;
+}
+
+export interface UCPImage {
+    url: string;
+    alt_text?: string;
+    width?: number;
+    height?: number;
 }
