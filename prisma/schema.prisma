@@ -16,7 +16,7 @@ model Session {
   scope         String?
   expires       DateTime?
   accessToken   String
-  userId        BigInt?
+  userId        String?
   firstName     String?
   lastName      String?
   email         String?
