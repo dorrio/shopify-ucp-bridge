@@ -434,11 +434,11 @@ export class CheckoutService {
    * Update checkout
    */
   async updateCheckout(request: UCPCheckoutUpdateRequest): Promise<UCPCheckout> {
-    const lineItems = request.line_items.map(transformLineItemToShopify);
+    const input: any = {};
 
-    const input: any = {
-      lineItems,
-    };
+    if (request.line_items) {
+      input.lineItems = request.line_items.map(transformLineItemToShopify);
+    }
 
     if (request.buyer?.email) {
       input.email = request.buyer.email;

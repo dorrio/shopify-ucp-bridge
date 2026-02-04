@@ -313,6 +313,7 @@ export interface UCPMessage {
 }
 
 export interface UCPLink {
+    rel?: string;
     href: string;
     title?: string;
 }
