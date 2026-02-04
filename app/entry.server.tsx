@@ -1,10 +1,11 @@
 import type { EntryContext } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
-import { renderToReadableStream } from "react-dom/server";
+import { renderToPipeableStream } from "react-dom/server";
+import { PassThrough } from "stream";
 import { addDocumentResponseHeaders } from "./shopify.server";
 
-export default async function handleRequest(
+export default function handleRequest(
     request: Request,
     responseStatusCode: number,
     responseHeaders: Headers,
@@ -12,31 +13,62 @@ export default async function handleRequest(
 ) {
     addDocumentResponseHeaders(request, responseHeaders);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    return new Promise((resolve, reject) => {
+        let shellRendered = false;
+        const { pipe, abort } = renderToPipeableStream(
+            <RemixServer context={remixContext} url={request.url} />,
+            {
+                onShellReady() {
+                    shellRendered = true;
+                    const body = new PassThrough();
+                    const stream = createReadableStreamFromReadable(body);
 
-    const body = await renderToReadableStream(
-        <RemixServer context={remixContext} url={request.url} />,
-        {
-            signal: controller.signal,
-            onError(error: unknown) {
-                if (!controller.signal.aborted) {
-                    // Log streaming rendering errors from inside the shell
-                    console.error(error);
+                    responseHeaders.set("Content-Type", "text/html");
+
+                    resolve(
+                        new Response(stream, {
+                            headers: responseHeaders,
+                            status: responseStatusCode,
+                        })
+                    );
+
+                    pipe(body);
+                },
+                onShellError(error: unknown) {
+                    reject(error);
+                },
+                onError(error: unknown) {
                     responseStatusCode = 500;
-                }
-            },
-        }
-    );
+                    // Log streaming rendering errors from inside the shell
+                    if (shellRendered) {
+                        console.error(error);
+                    }
+                },
+            }
+        );
 
-    if (isbot(request.headers.get("user-agent") || "")) {
-        await body.allReady;
-    }
+        setTimeout(abort, 5000);
+    });
+}
 
-    responseHeaders.set("Content-Type", "text/html");
-
-    return new Response(body, {
-        headers: responseHeaders,
-        status: responseStatusCode,
+function createReadableStreamFromReadable(readable: import("stream").Readable) {
+    // This function adapts a Node.js Readable stream to a Web Standard ReadableStream
+    // which Remix/Response expects.
+    // In newer Node versions (v18+), Readable.toWeb() exists but let's implement a simple adapter to be safe/explicit.
+    return new ReadableStream({
+        start(controller) {
+            readable.on("data", (chunk) => {
+                controller.enqueue(chunk);
+            });
+            readable.on("end", () => {
+                controller.close();
+            });
+            readable.on("error", (err) => {
+                controller.error(err);
+            });
+        },
+        cancel() {
+            readable.destroy();
+        },
     });
 }
