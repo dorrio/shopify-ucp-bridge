@@ -403,6 +403,15 @@ export class MCPService {
                 // Checkout tools
                 case "create_checkout": {
                     const transformedArgs = parseUCPLineItems(args);
+                    // FIX: Ensure variant_id is populated if product_id is a variant GID
+                    if (transformedArgs.line_items) {
+                        transformedArgs.line_items = transformedArgs.line_items.map((item: any) => {
+                            if (item.product_id && typeof item.product_id === 'string' && item.product_id.includes('ProductVariant') && !item.variant_id) {
+                                return { ...item, variant_id: item.product_id };
+                            }
+                            return item;
+                        });
+                    }
                     result = await this.checkoutService.createCheckout(transformedArgs as unknown as UCPCheckoutCreateRequest);
                     break;
                 }

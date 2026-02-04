@@ -124,6 +124,14 @@ export function parseUCPLineItems(body: any): any {
         }
 
         // Already in internal/legacy format
+        // FIX: Ensure variant_id is populated if product_id is a variant GID
+        if (lineItem.product_id && !lineItem.variant_id && lineItem.product_id.includes("ProductVariant")) {
+            return {
+                ...lineItem,
+                variant_id: lineItem.product_id,
+            };
+        }
+
         return lineItem;
     });
 
