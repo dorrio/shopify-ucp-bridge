@@ -165,7 +165,7 @@ export const MCP_TOOLS: MCPToolDefinition[] = [
     },
     {
         name: "complete_checkout",
-        description: "Complete a checkout session, converting it to an order. Requires all buyer information to be set.",
+        description: "Complete a checkout session. IMPORTANT: This will fail if the buyer email or shipping address have not been set using update_checkout first.",
         inputSchema: {
             type: "object",
             properties: {

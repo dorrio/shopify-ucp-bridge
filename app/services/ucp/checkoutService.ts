@@ -484,6 +484,25 @@ export class CheckoutService {
    * Complete checkout - converts Draft Order to Order
    */
   async completeCheckout(checkoutId: string, _request: UCPCheckoutCompleteRequest): Promise<UCPCheckout> {
+    // 1. Fetch current state to validate
+    const checkout = await this.getCheckout(checkoutId);
+    if (!checkout) {
+      throw new Error(`Checkout ${checkoutId} not found`);
+    }
+
+    // 2. Strict validation: Ensure email and shipping address are present
+    const email = checkout.buyer?.email;
+    const hasShipping = checkout.buyer?.addresses?.some(addr => addr.address1 && addr.city);
+
+    if (!email || !hasShipping) {
+      const missing = [];
+      if (!email) missing.push("buyer email");
+      if (!hasShipping) missing.push("shipping address");
+
+      throw new Error(`Cannot complete checkout: ${missing.join(" and ")} is missing. Please use update_checkout to provide these details first.`);
+    }
+
+    // 3. Complete the order
     const response = await this.admin.graphql(`
       mutation DraftOrderComplete($id: ID!) {
         draftOrderComplete(id: $id) {
