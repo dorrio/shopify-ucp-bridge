@@ -37,6 +37,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 checkout: { status: "active", version: "2026-01-01" },
                 order: { status: "active", version: "2026-01-01" },
                 fulfillment: { status: "active", version: "2026-01-01" },
+                debug: {
+                    scopes: session.scope,
+                    token: session.accessToken ? "yes" : "no"
+                }
             },
         });
     } catch (error) {
@@ -63,6 +67,22 @@ export default function AppIndex() {
             primaryAction={{ content: "Settings", url: "/app/settings" }}
         >
             <Layout>
+                <Layout.Section>
+                    <Card>
+                        <BlockStack gap="400">
+                            <Text as="h2" variant="headingMd">
+                                Debug Info (v2-debug)
+                            </Text>
+                            <Box background="bg-surface-secondary" padding="300" borderRadius="200">
+                                <BlockStack gap="200">
+                                    <Text as="p"><strong>Shop:</strong> {shop}</Text>
+                                    <Text as="p"><strong>Scopes:</strong> {services.debug?.scopes || 'N/A'}</Text>
+                                    <Text as="p"><strong>Token:</strong> {services.debug?.token ? 'Present (Masked)' : 'MISSING'}</Text>
+                                </BlockStack>
+                            </Box>
+                        </BlockStack>
+                    </Card>
+                </Layout.Section>
                 <Layout.Section>
                     <Card>
                         <BlockStack gap="400">
