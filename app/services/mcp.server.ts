@@ -60,7 +60,7 @@ export const MCP_TOOLS: MCPToolDefinition[] = [
     // Checkout Tools
     {
         name: "create_checkout",
-        description: "Create a new UCP checkout session with line items. Returns checkout ID, totals, and status.",
+        description: "Create a new UCP checkout session with line items. STATUS: 'ready_for_complete' (if info present), 'incomplete' (if missing info). RESPONSE HANDLING: You MUST display the created checkout summary, including line items, total price, and ANY MISSING INFORMATION (like email/shipping). Ask the user if they want to proceed to provide that info.",
         inputSchema: {
             type: "object",
             properties: {
@@ -126,7 +126,7 @@ export const MCP_TOOLS: MCPToolDefinition[] = [
     },
     {
         name: "update_checkout",
-        description: "Update an existing checkout session with buyer info, addresses, or line items.",
+        description: "Step 2 of 3: Update checkout with buyer details. REQUIRED: You MUST ask the user for their email and full shipping address (address, city, zip, country) before calling this. DO NOT INVENT DATA. If the user hasn't provided it, ask them for it.",
         inputSchema: {
             type: "object",
             properties: {
@@ -165,7 +165,7 @@ export const MCP_TOOLS: MCPToolDefinition[] = [
     },
     {
         name: "complete_checkout",
-        description: "Complete a checkout session. IMPORTANT: This will fail if the buyer email or shipping address have not been set using update_checkout first.",
+        description: "Step 3 of 3: Finalize the order. PREREQUISITE: Ensure 'update_checkout' was strictly called with valid email/address. This tool will FAIL if data is missing. FINAL OUTPUT: Provide the completed order details and payment link to the user.",
         inputSchema: {
             type: "object",
             properties: {
@@ -286,7 +286,7 @@ export const MCP_TOOLS: MCPToolDefinition[] = [
     // Product Tools
     {
         name: "search_products",
-        description: "Search for products by title or description.",
+        description: "Search for products. RESPONSE HANDLING: You MUST display the product images, titles, and prices in a list or gallery format. Do not just list names.",
         inputSchema: {
             type: "object",
             properties: {
