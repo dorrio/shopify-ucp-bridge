@@ -494,6 +494,11 @@ export class CheckoutService {
     }
 
     // 2. Strict validation: Ensure email and shipping address are present
+    // NEW: Check if already completed (Idempotency / External Payment)
+    if (checkout.status === 'completed' || checkout.order) {
+      return checkout;
+    }
+
     const email = checkout.buyer?.email;
     const hasShipping = checkout.buyer?.addresses?.some(addr => addr.address1 && addr.city);
 
