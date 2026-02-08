@@ -29,12 +29,9 @@
         "noEmit": true
     },
     "include": [
+        "remix.env.d.ts",
         "**/*.ts",
-        "**/*.tsx",
-        "**/.server/**/*.ts",
-        "**/.server/**/*.tsx",
-        "**/.client/**/*.ts",
-        "**/.client/**/*.tsx"
+        "**/*.tsx"
     ],
     "exclude": [
         "node_modules"
