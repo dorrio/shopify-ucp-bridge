@@ -1,6 +1,11 @@
+
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { buildCORSHeaders, handleCORSPreflight } from "../utils/cors";
+// Import the config directly - Remix/Vite handles the JSON import
+import config from "../../ucp.config.json";
+// We don't need the type at runtime for the import, but good to know it matches
+import type { UCPConfig } from "../types/ucp-config";
 
 /**
  * UCP Profile Discovery Endpoint
@@ -24,79 +29,97 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const corsHeaders = buildCORSHeaders(request);
 
-    return json({
-        version: "2026-01-01",
-        name: "Shopify UCP Bridge",
-        description: "Universal Commerce Protocol bridge for Shopify stores",
+    // Cast config to our type to ensure safety if we use it for logic
+    const ucpConfig = config as unknown as UCPConfig;
 
-        // Services advertise transport bindings
-        services: {
-            "dev.ucp.shopping": [
-                {
-                    version: "2026-01-01",
-                    transport: "rest",
-                    schema: "https://ucp.dev/services/shopping/rest.openapi.json",
-                    endpoint: baseUrl,
-                },
-                {
-                    version: "2026-01-01",
-                    transport: "mcp",
-                    schema: "https://ucp.dev/services/shopping/mcp.json",
-                    endpoint: "stdio",
-                    tools: [
-                        "create_checkout", "get_checkout", "update_checkout", "complete_checkout", "cancel_checkout",
-                        "create_cart", "get_cart", "update_cart", "delete_cart",
-                        "get_order", "list_orders",
-                    ],
-                },
-                {
-                    version: "2026-01-01",
-                    transport: "a2a",
-                    schema: "https://a2a-protocol.org/latest/specification/",
-                    agentCard: `${baseUrl}/.well-known/agent-card.json`,
-                    interfaces: {
-                        jsonrpc: `${baseUrl}/a2a/jsonrpc`,
-                        rest: `${baseUrl}/a2a/rest`,
-                    },
-                    skills: ["ucp-checkout", "ucp-cart", "ucp-order"],
-                },
+    // Dynamically build services list based on enabled transports
+    const services: Record<string, any[]> = {
+        "dev.ucp.shopping": []
+    };
+
+    if (ucpConfig.transports.http?.enabled) {
+        services["dev.ucp.shopping"].push({
+            version: ucpConfig.ucp_version,
+            transport: "rest",
+            schema: "https://ucp.dev/services/shopping/rest.openapi.json",
+            endpoint: baseUrl,
+        });
+    }
+
+    if (ucpConfig.transports.mcp?.enabled) {
+        services["dev.ucp.shopping"].push({
+            version: ucpConfig.ucp_version,
+            transport: "mcp",
+            schema: "https://ucp.dev/services/shopping/mcp.json",
+            endpoint: "stdio",
+            tools: [
+                "create_checkout", "get_checkout", "update_checkout", "complete_checkout", "cancel_checkout",
+                "create_cart", "get_cart", "update_cart", "delete_cart",
+                "get_order", "list_orders",
             ],
-        },
+        });
+    }
 
-        // Capabilities list specific features
-        capabilities: {
-            "dev.ucp.shopping.cart": [{
-                version: "2026-01-01",
-                spec: "https://ucp.dev/specification/cart",
-                description: "Cart management for collecting line items",
-            }],
-            "dev.ucp.shopping.checkout": [{
-                version: "2026-01-01",
-                spec: "https://ucp.dev/specification/checkout",
-                description: "Checkout session management with buyer info and payment",
-                endpoints: {
-                    create: "POST /checkout-sessions",
-                    get: "GET /checkout-sessions/{id}",
-                    update: "PUT /checkout-sessions/{id}",
-                    complete: "POST /checkout-sessions/{id}/complete",
-                    cancel: "POST /checkout-sessions/{id}/cancel",
-                },
-            }],
-            "dev.ucp.shopping.order": [{
-                version: "2026-01-01",
-                spec: "https://ucp.dev/specification/order",
-                description: "Order retrieval and fulfillment tracking",
-            }],
-        },
+    if (ucpConfig.transports.a2a?.enabled) {
+        services["dev.ucp.shopping"].push({
+            version: ucpConfig.ucp_version,
+            transport: "a2a",
+            schema: "https://a2a-protocol.org/latest/specification/",
+            agentCard: `${baseUrl}/.well-known/agent-card.json`,
+            interfaces: {
+                jsonrpc: `${baseUrl}/a2a/jsonrpc`,
+                rest: `${baseUrl}/a2a/rest`,
+            },
+            skills: Object.keys(ucpConfig.capabilities)
+                .filter(cap => ucpConfig.capabilities[cap].enabled)
+                .map(cap => cap.replace("dev.ucp.shopping.", "ucp-")),
+        });
+    }
 
-        // Supported features
-        features: {
-            currencies: ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"],
-            payment_methods: ["invoice"], // Using Shopify's invoice flow
-            fulfillment_types: ["shipping", "pickup"],
-        },
+    // Dynamically build capabilities list
+    const capabilities: Record<string, any[]> = {};
 
-        // Contact info
+    // Mapping from config keys to spec URLs and descriptions
+    const capabilityMeta: Record<string, { spec: string, description: string, endpoints?: any }> = {
+        "dev.ucp.shopping.cart": {
+            spec: "https://ucp.dev/specification/cart",
+            description: "Cart management for collecting line items"
+        },
+        "dev.ucp.shopping.checkout": {
+            spec: "https://ucp.dev/specification/checkout",
+            description: "Checkout session management with buyer info and payment",
+            endpoints: {
+                create: "POST /checkout-sessions",
+                get: "GET /checkout-sessions/{id}",
+                update: "PUT /checkout-sessions/{id}",
+                complete: "POST /checkout-sessions/{id}/complete",
+                cancel: "POST /checkout-sessions/{id}/cancel",
+            }
+        },
+        "dev.ucp.shopping.order": {
+            spec: "https://ucp.dev/specification/order",
+            description: "Order retrieval and fulfillment tracking"
+        }
+    };
+
+    for (const [key, value] of Object.entries(ucpConfig.capabilities)) {
+        if (value.enabled && capabilityMeta[key] && value.versions.length > 0) {
+            capabilities[key] = [{
+                version: value.versions[0],
+                spec: capabilityMeta[key].spec,
+                description: capabilityMeta[key].description,
+                ...(capabilityMeta[key].endpoints ? { endpoints: capabilityMeta[key].endpoints } : {})
+            }];
+        }
+    }
+
+    return json({
+        version: ucpConfig.ucp_version,
+        name: ucpConfig.identity.name,
+        description: ucpConfig.identity.description,
+        services,
+        capabilities,
+        features: ucpConfig.features,
         links: [
             {
                 rel: "documentation",
@@ -106,9 +129,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         ],
     }, {
         headers: {
-            "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+            "Cache-Control": "public, max-age=3600",
             ...corsHeaders,
         },
     });
 }
-

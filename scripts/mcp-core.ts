@@ -276,15 +276,20 @@ export class UCPRestClient {
     private accessToken: string;
 
     constructor() {
-        this.baseUrl = process.env.SHOPIFY_STORE_URL || "http://localhost:3000";
-        this.accessToken = process.env.SHOPIFY_ACCESS_TOKEN || "";
+        /*
+         * Configuration (environment variables):
+         *   BRIDGE_URL - URL of the running Remix application (default: http://localhost:3000)
+         *   BRIDGE_ACCESS_TOKEN - Optional token if bridge endpoints are protected
+         */
+        this.baseUrl = process.env.BRIDGE_URL || "http://localhost:3000";
+        this.accessToken = process.env.BRIDGE_ACCESS_TOKEN || "";
     }
 
     private async request(method: string, path: string, body?: unknown): Promise<unknown> {
         const url = `${this.baseUrl}${path}`;
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
-            "UCP-Agent": "mcp-server/1.0 (ucp-shopify-bridge)",
+            "UCP-Agent": "Shopify-UCP-Bridge/1.0 (MCP)",
         };
 
         if (this.accessToken) {

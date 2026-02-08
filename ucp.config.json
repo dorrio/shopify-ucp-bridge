@@ -1,0 +1,62 @@
+{
+    "$schema": "./ucp.config.schema.json",
+    "ucp_version": "2026-01-01",
+    "roles": [
+        "business"
+    ],
+    "runtime": "node",
+    "identity": {
+        "name": "Shopify UCP Bridge",
+        "description": "Universal Commerce Protocol bridge for Shopify stores"
+    },
+    "capabilities": {
+        "dev.ucp.shopping.cart": {
+            "versions": [
+                "2026-01-01"
+            ],
+            "enabled": true
+        },
+        "dev.ucp.shopping.checkout": {
+            "versions": [
+                "2026-01-01"
+            ],
+            "enabled": true
+        },
+        "dev.ucp.shopping.order": {
+            "versions": [
+                "2026-01-01"
+            ],
+            "enabled": true
+        }
+    },
+    "transports": {
+        "http": {
+            "enabled": true,
+            "base_path": "/api/ucp"
+        },
+        "mcp": {
+            "enabled": true,
+            "stdio": true
+        },
+        "a2a": {
+            "enabled": true
+        }
+    },
+    "features": {
+        "currencies": [
+            "USD",
+            "EUR",
+            "GBP",
+            "CAD",
+            "AUD",
+            "JPY"
+        ],
+        "payment_methods": [
+            "invoice"
+        ],
+        "fulfillment_types": [
+            "shipping",
+            "pickup"
+        ]
+    }
+}

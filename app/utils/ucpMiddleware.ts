@@ -1,4 +1,5 @@
 import { json } from "@remix-run/node";
+import type { UCPConfig } from "../types/ucp-config";
 
 export interface UCPHeaders {
     ucpAgent?: string;
@@ -171,5 +172,36 @@ export function validateUCPHeaders(request: Request, requireAgent = false): UCPH
     return {
         ucpAgent: ucpAgent || undefined,
         ucpPlatformProfile,
+    };
+}
+
+/**
+ * Negotiation Result
+ */
+export interface NegotiationResult {
+    capabilities: Record<string, { version: string }>;
+}
+
+/**
+ * Negotiate capabilities between Client and Server
+ * 
+ * @param config The server configuration
+ * @param clientCapabilities Optional client capabilities (not yet fully used, assuming intersection with config)
+ */
+export function negotiateCapabilities(config: UCPConfig, clientCapabilities?: any): NegotiationResult {
+    const negotiated: Record<string, { version: string }> = {};
+
+    // For now, we simply advertise what we support from the config.
+    // In a full implementation, we would intersect this with clientCapabilities.
+    for (const [key, value] of Object.entries(config.capabilities)) {
+        if (value.enabled) {
+            negotiated[key] = {
+                version: value.versions[0] // Default to the first (preferred) version
+            };
+        }
+    }
+
+    return {
+        capabilities: negotiated
     };
 }

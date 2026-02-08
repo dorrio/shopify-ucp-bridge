@@ -10,7 +10,6 @@
       }
     },
     "routeIdToServerBundleId": {
-      "root": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/[.well-known].agent-card[.json]": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/checkout-sessions.$id.complete": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/api.ucp.checkout.$id.complete": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
@@ -22,12 +21,19 @@
       "routes/api.ucp.order.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/checkout-sessions": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/api.ucp.checkout": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/debug.test-write": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/debug.sessions": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/api.ucp.order": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/app.settings": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/debug.clean": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/ucp-profile": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/app._index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.login": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/orders.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/carts.$id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.mcp": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/_index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.$": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/orders": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
       "routes/carts": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0"
     },
@@ -36,142 +42,241 @@
         "path": "",
         "id": "root",
         "file": "app/root.tsx",
-        "config": {
-          "runtime": "nodejs"
-        }
+        "config": {}
       },
       "routes/[.well-known].agent-card[.json]": {
         "file": "app/routes/[.well-known].agent-card[.json].ts",
         "id": "routes/[.well-known].agent-card[.json]",
         "path": ".well-known/agent-card.json",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/checkout-sessions.$id.complete": {
         "file": "app/routes/checkout-sessions.$id.complete.ts",
         "id": "routes/checkout-sessions.$id.complete",
         "path": "complete",
         "parentId": "routes/checkout-sessions.$id",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/api.ucp.checkout.$id.complete": {
         "file": "app/routes/api.ucp.checkout.$id.complete.ts",
         "id": "routes/api.ucp.checkout.$id.complete",
         "path": "complete",
         "parentId": "routes/api.ucp.checkout.$id",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/checkout-sessions.$id.cancel": {
         "file": "app/routes/checkout-sessions.$id.cancel.ts",
         "id": "routes/checkout-sessions.$id.cancel",
         "path": "cancel",
         "parentId": "routes/checkout-sessions.$id",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/api.ucp.checkout.$id.cancel": {
         "file": "app/routes/api.ucp.checkout.$id.cancel.ts",
         "id": "routes/api.ucp.checkout.$id.cancel",
         "path": "cancel",
         "parentId": "routes/api.ucp.checkout.$id",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/checkout-sessions.$id": {
         "file": "app/routes/checkout-sessions.$id.ts",
         "id": "routes/checkout-sessions.$id",
         "path": ":id",
         "parentId": "routes/checkout-sessions",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/api.ucp.checkout.$id": {
         "file": "app/routes/api.ucp.checkout.$id.ts",
         "id": "routes/api.ucp.checkout.$id",
         "path": ":id",
         "parentId": "routes/api.ucp.checkout",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/[.well-known].ucp": {
         "file": "app/routes/[.well-known].ucp.ts",
         "id": "routes/[.well-known].ucp",
         "path": ".well-known/ucp",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/api.ucp.order.$id": {
         "file": "app/routes/api.ucp.order.$id.ts",
         "id": "routes/api.ucp.order.$id",
         "path": ":id",
         "parentId": "routes/api.ucp.order",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/checkout-sessions": {
         "file": "app/routes/checkout-sessions.ts",
         "id": "routes/checkout-sessions",
         "path": "checkout-sessions",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/api.ucp.checkout": {
         "file": "app/routes/api.ucp.checkout.ts",
         "id": "routes/api.ucp.checkout",
         "path": "api/ucp/checkout",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/debug.test-write": {
+        "file": "app/routes/debug.test-write.ts",
+        "id": "routes/debug.test-write",
+        "path": "debug/test-write",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/debug.sessions": {
+        "file": "app/routes/debug.sessions.ts",
+        "id": "routes/debug.sessions",
+        "path": "debug/sessions",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/api.ucp.order": {
         "file": "app/routes/api.ucp.order.ts",
         "id": "routes/api.ucp.order",
         "path": "api/ucp/order",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/app.settings": {
         "file": "app/routes/app.settings.tsx",
         "id": "routes/app.settings",
         "path": "settings",
         "parentId": "routes/app",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/debug.clean": {
+        "file": "app/routes/debug.clean.ts",
+        "id": "routes/debug.clean",
+        "path": "debug/clean",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/ucp-profile": {
         "file": "app/routes/ucp-profile.ts",
         "id": "routes/ucp-profile",
         "path": "ucp-profile",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/app._index": {
         "file": "app/routes/app._index.tsx",
         "id": "routes/app._index",
         "index": true,
         "parentId": "routes/app",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/auth.login": {
+        "file": "app/routes/auth.login.tsx",
+        "id": "routes/auth.login",
+        "path": "auth/login",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/orders.$id": {
         "file": "app/routes/orders.$id.ts",
         "id": "routes/orders.$id",
         "path": ":id",
         "parentId": "routes/orders",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/carts.$id": {
         "file": "app/routes/carts.$id.ts",
         "id": "routes/carts.$id",
         "path": ":id",
         "parentId": "routes/carts",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.mcp": {
+        "file": "app/routes/api.mcp.ts",
+        "id": "routes/api.mcp",
+        "path": "api/mcp",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/_index": {
+        "file": "app/routes/_index.tsx",
+        "id": "routes/_index",
+        "index": true,
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/auth.$": {
+        "file": "app/routes/auth.$.tsx",
+        "id": "routes/auth.$",
+        "path": "auth/*",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/orders": {
         "file": "app/routes/orders.ts",
         "id": "routes/orders",
         "path": "orders",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/carts": {
         "file": "app/routes/carts.ts",
         "id": "routes/carts",
         "path": "carts",
         "parentId": "root",
-        "config": {}
+        "config": {
+          "runtime": "nodejs"
+        }
       },
       "routes/app": {
         "file": "app/routes/app.tsx",
@@ -269,6 +374,18 @@
         "path": "api/ucp/checkout",
         "parentId": "root"
       },
+      "routes/debug.test-write": {
+        "file": "routes/debug.test-write.ts",
+        "id": "routes/debug.test-write",
+        "path": "debug/test-write",
+        "parentId": "root"
+      },
+      "routes/debug.sessions": {
+        "file": "routes/debug.sessions.ts",
+        "id": "routes/debug.sessions",
+        "path": "debug/sessions",
+        "parentId": "root"
+      },
       "routes/api.ucp.order": {
         "file": "routes/api.ucp.order.ts",
         "id": "routes/api.ucp.order",
@@ -280,6 +397,12 @@
         "id": "routes/app.settings",
         "path": "settings",
         "parentId": "routes/app"
+      },
+      "routes/debug.clean": {
+        "file": "routes/debug.clean.ts",
+        "id": "routes/debug.clean",
+        "path": "debug/clean",
+        "parentId": "root"
       },
       "routes/ucp-profile": {
         "file": "routes/ucp-profile.ts",
@@ -293,6 +416,12 @@
         "index": true,
         "parentId": "routes/app"
       },
+      "routes/auth.login": {
+        "file": "routes/auth.login.tsx",
+        "id": "routes/auth.login",
+        "path": "auth/login",
+        "parentId": "root"
+      },
       "routes/orders.$id": {
         "file": "routes/orders.$id.ts",
         "id": "routes/orders.$id",
@@ -304,6 +433,24 @@
         "id": "routes/carts.$id",
         "path": ":id",
         "parentId": "routes/carts"
+      },
+      "routes/api.mcp": {
+        "file": "routes/api.mcp.ts",
+        "id": "routes/api.mcp",
+        "path": "api/mcp",
+        "parentId": "root"
+      },
+      "routes/_index": {
+        "file": "routes/_index.tsx",
+        "id": "routes/_index",
+        "index": true,
+        "parentId": "root"
+      },
+      "routes/auth.$": {
+        "file": "routes/auth.$.tsx",
+        "id": "routes/auth.$",
+        "path": "auth/*",
+        "parentId": "root"
       },
       "routes/orders": {
         "file": "routes/orders.ts",
