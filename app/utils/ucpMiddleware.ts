@@ -195,6 +195,10 @@ export function negotiateCapabilities(config: UCPConfig, clientCapabilities?: an
     // In a full implementation, we would intersect this with clientCapabilities.
     for (const [key, value] of Object.entries(config.capabilities)) {
         if (value.enabled) {
+            if (!value.versions || value.versions.length === 0) {
+                console.warn(`[Negotiation] Skipping capability '${key}': enabled but no versions defined.`);
+                continue;
+            }
             negotiated[key] = {
                 version: value.versions[0] // Default to the first (preferred) version
             };

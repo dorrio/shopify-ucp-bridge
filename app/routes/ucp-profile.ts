@@ -38,11 +38,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 
     if (ucpConfig.transports.http?.enabled) {
+        let endpointUrl = baseUrl;
+        if (ucpConfig.transports.http.base_path && ucpConfig.transports.http.base_path !== "/") {
+            const cleanBase = baseUrl.replace(/\/+$/, "");
+            const cleanPath = ucpConfig.transports.http.base_path.replace(/^\/+/, "");
+            endpointUrl = `${cleanBase}/${cleanPath}`;
+        }
+
         services["dev.ucp.shopping"].push({
             version: ucpConfig.ucp_version,
             transport: "rest",
             schema: "https://ucp.dev/services/shopping/rest.openapi.json",
-            endpoint: baseUrl,
+            endpoint: endpointUrl,
         });
     }
 

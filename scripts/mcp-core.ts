@@ -281,8 +281,8 @@ export class UCPRestClient {
          *   BRIDGE_URL - URL of the running Remix application (default: http://localhost:3000)
          *   BRIDGE_ACCESS_TOKEN - Optional token if bridge endpoints are protected
          */
-        this.baseUrl = process.env.BRIDGE_URL || "http://localhost:3000";
-        this.accessToken = process.env.BRIDGE_ACCESS_TOKEN || "";
+        this.baseUrl = process.env.BRIDGE_URL || process.env.SHOPIFY_STORE_URL || "http://localhost:3000";
+        this.accessToken = process.env.BRIDGE_ACCESS_TOKEN || process.env.SHOPIFY_ACCESS_TOKEN || "";
     }
 
     private async request(method: string, path: string, body?: unknown): Promise<unknown> {
