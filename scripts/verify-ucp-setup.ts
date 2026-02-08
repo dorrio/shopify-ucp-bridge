@@ -29,6 +29,11 @@ async function verify() {
             }
 
             // Verify REST endpoint has base path if configured
+            if (!data.services || !Array.isArray(data.services["dev.ucp.shopping"])) {
+                console.error("❌ Validation Failed: 'data.services[\"dev.ucp.shopping\"]' is missing or not an array.");
+                process.exit(1);
+            }
+
             const restService = data.services["dev.ucp.shopping"].find((s: any) => s.transport === "rest");
             if (restService) {
                 const expectedBasePath = ucpConfig.transports.http.base_path;
