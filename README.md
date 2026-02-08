@@ -43,7 +43,10 @@ Successfully created a Shopify embedded app that implements the Universal Commer
 4. **Configure your app credentials:**
    Edit `.env` with your Shopify app credentials from the Partner Dashboard.
 
-5. **Start the development server:**
+5. **Configure UCP settings:**
+   Edit `ucp.config.json` to define your agent's identity and capabilities.
+
+6. **Start the development server:**
    ```bash
    pnpm run dev
    ```
@@ -244,8 +247,8 @@ pnpm run mcp:sse
       "args": ["tsx", "scripts/mcp-server.ts"],
       "cwd": "/path/to/shopify-ucp-bridge",
       "env": {
-        "SHOPIFY_STORE_URL": "https://your-store.myshopify.com",
-        "SHOPIFY_ACCESS_TOKEN": "shpat_..."
+        "BRIDGE_URL": "http://localhost:3000",
+        "BRIDGE_ACCESS_TOKEN": "optional_token"
       }
     }
   }
@@ -281,7 +284,7 @@ pnpm run a2a
 A2A_PORT=6000 pnpm run a2a
 
 # With custom backend URL
-SHOPIFY_STORE_URL=https://your-store.myshopify.com pnpm run a2a
+BRIDGE_URL=http://localhost:3000 pnpm run a2a
 ```
 
 ### Endpoints

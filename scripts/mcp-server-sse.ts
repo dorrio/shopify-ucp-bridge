@@ -10,8 +10,8 @@
  * 
  * Configuration (environment variables):
  *   port - Port to listen on (default: 3001)
- *   SHOPIFY_STORE_URL - Your myshopify.com store URL
- *   SHOPIFY_ACCESS_TOKEN - Admin API access token
+ *   BRIDGE_URL - URL of the running Remix application (default: http://localhost:3000)
+ *   BRIDGE_ACCESS_TOKEN - Optional token if bridge endpoints are protected
  */
 
 import express from "express";
