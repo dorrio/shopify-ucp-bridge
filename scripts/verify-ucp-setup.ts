@@ -1,6 +1,8 @@
 
 import { loader } from "../app/routes/ucp-profile";
-import { json } from "@remix-run/node";
+import "@remix-run/node";
+// @ts-ignore
+import ucpConfig from "../ucp.config.json";
 
 async function verify() {
     console.log("Verifying UCP Profile...");
@@ -15,20 +17,30 @@ async function verify() {
             const data = await response.json();
             console.log("Profile Data:", JSON.stringify(data, null, 2));
 
-            if (data.name === "Shopify UCP Bridge" && data.version === "2026-01-01") {
-                console.log("✅ Profile name and version match config.");
+            // Use dynamic config values for verification
+            const expectedName = ucpConfig.identity.name;
+            const expectedVersion = ucpConfig.ucp_version;
+
+            if (data.name === expectedName && data.version === expectedVersion) {
+                console.log(`✅ Profile name (${expectedName}) and version (${expectedVersion}) match config.`);
             } else {
-                console.error("❌ Profile name or version mismatch.");
+                console.error(`❌ Profile mismatch. Expected Name: ${expectedName}, Version: ${expectedVersion}. Got Name: ${data.name}, Version: ${data.version}`);
                 process.exit(1);
             }
 
             // Verify REST endpoint has base path if configured
+            if (!data.services || !Array.isArray(data.services["dev.ucp.shopping"])) {
+                console.error("❌ Validation Failed: 'data.services[\"dev.ucp.shopping\"]' is missing or not an array.");
+                process.exit(1);
+            }
+
             const restService = data.services["dev.ucp.shopping"].find((s: any) => s.transport === "rest");
             if (restService) {
-                if (restService.endpoint.includes("/api/ucp")) {
-                    console.log("✅ REST endpoint correctly includes base path.");
+                const expectedBasePath = ucpConfig.transports.http.base_path;
+                if (restService.endpoint.includes(expectedBasePath)) {
+                    console.log(`✅ REST endpoint correctly includes base path: ${expectedBasePath}`);
                 } else {
-                    console.error(`❌ REST endpoint missing base path: ${restService.endpoint}`);
+                    console.error(`❌ REST endpoint missing base path (${expectedBasePath}): ${restService.endpoint}`);
                     process.exit(1);
                 }
             }
@@ -43,4 +55,7 @@ async function verify() {
     }
 }
 
-verify();
+verify().catch(err => {
+    console.error('verify failed', err);
+    process.exit(1);
+});
